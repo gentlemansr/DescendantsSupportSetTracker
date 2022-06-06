@@ -1,0 +1,20 @@
+<Bindings>
+  <Layer name="SI_KEYBINDINGS_LAYER_GENERAL">
+    <Category name="|cffd817Descendants Support Set Tracker|r">
+      <Action name="DSST_TOGGLE">
+        <Down>
+		-- toggle window on Button
+		if DSST.hidden ~= true then
+			DSST.hidden = true
+		else 		
+			DSST.hidden = false	
+			DSST.checkBags()
+			DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1)		
+		end
+		DSSTWindow:SetHidden(DSST.hidden)
+		</Down>
+      </Action>
+    </Category>
+      -->
+  </Layer>
+</Bindings>
