@@ -1,4 +1,8 @@
 --------------------------------------------------------------------------------
+-- LIBRARY IMPORTS
+--------------------------------------------------------------------------------
+local LAM = LibAddonMenu2
+--------------------------------------------------------------------------------
 -- CREATE SETTING MENU WITH LIBADDONMENU
 --------------------------------------------------------------------------------
 
@@ -17,7 +21,7 @@ function DSST.setupSettings()
 		{
             type = "button",
             name = "Show / Hide",
-            tooltip = "Shows/Hides the WIndow",
+            tooltip = "Shows/Hides the Window",
             width = "half",
             func = DSST.showWindow,
         },
@@ -54,7 +58,7 @@ function DSST.setupSettings()
 	    {
             type = "header",
             name = "Custom Set List",
-            description = "The Custom list feature is still in a beta state.\n Only one set can be added at a time.\n",
+            description = "You can add mulitple Sets by comma seperating them for example:\nSpell Power Cure,Master Architect",
         },
 		{
 			type = "dropdown",

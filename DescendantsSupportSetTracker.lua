@@ -1,6 +1,6 @@
 DSST = {}
 DSST.name = "DescendantsSupportSetTracker"
-DSST.version = "0.8"
+DSST.version = "0.9"
 DSST.variableVersion = 2
 --------------------------------------------------------------------------------
 -- LIBRARY IMPORTS
@@ -186,13 +186,6 @@ function DSST.OnIndicatorMoveStop()
   DSST.savedVariables.left = DSSTWindow:GetLeft()
   DSST.savedVariables.top = DSSTWindow:GetTop()
 end
---------------------------------------------------------------------------------
--- HIDE THE WINDOW
---------------------------------------------------------------------------------
-function DSST.HideUI()
-	DSST.hidden = true 
-	DSSTWindow:SetHidden(DSST.hidden)
-end
 
 --------------------------------------------------------------------------------
 -- CHECK IF THE CURRENT PIECE IS RECONSTRUCTED
@@ -253,7 +246,7 @@ function DSST.checkPiece(setId, pieceId)
 	end
 	
 	return lState, lQuality
-end--GetItemLinkItemSetCollectionSlot
+end
 --------------------------------------------------------------------------------
 -- FORMAT THE SET ROWS ACCORING TO PLAN IN XML FILE
  -- VSTATE = 0 ERROR | 1 OWNED | 2 TRANSMUTE | 3 NOT OWNED | 4 N/A 
@@ -468,7 +461,6 @@ function DSST:Initialize()
 	DSST.setupSettings()
 	-- GENERATE REST OF THE UI
 	DSST.generateHeadder(gSetList)
-	--DSST.UpdateScrollList(DSST.cScrollList, sets[gSetList], 1) -- TODO: REMOVE WHEN FINISHED
 	-- CHECK IF LIB SETS LOADED PROPPERLY
 	DSST.lsLoaded()
 	DSST.saveSetTable()
