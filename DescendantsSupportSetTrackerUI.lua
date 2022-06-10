@@ -124,7 +124,7 @@ function DSST.generateHeadder()
 	cButton:SetNormalTexture("/esoui/art/buttons/decline_up.dds")
 	cButton:SetMouseOverTexture("/esoui/art/buttons/decline_over.dds")
 	cButton:SetPressedTexture("/esoui/art/buttons/decline_down.dds")
-	cButton:SetHandler("OnMouseDown", function(self) DSST.HideUI() end) 
+	cButton:SetHandler("OnMouseDown", function(self) DSST.showWindow() end) 
 	
 	-- GENERATE SET LIST NAME TOP LEFT 
 	local cList = CreateControl("$(parent)SetList", DSSTWindow, CT_LABEL)

@@ -1,6 +1,6 @@
 DSST = {}
 DSST.name = "DescendantsSupportSetTracker"
-DSST.version = "0.9"
+DSST.version = "0.92"
 DSST.variableVersion = 2
 --------------------------------------------------------------------------------
 -- LIBRARY IMPORTS
