@@ -151,16 +151,38 @@ function DSST.generateHeadder()
 		end
 	end
 end
+
 --------------------------------------------------------------------------------
--- GENERATE HEADDER ICON ROW 
+-- FUNCTIONS TO ADJUST THE WINDOW
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- RESTORE POSITION AFTER RELOAD UI/RELOG
+--------------------------------------------------------------------------------
+function DSST:RestorePosition()
+  local left = self.savedVariables.left
+  local top = self.savedVariables.top
+ 
+  DSSTWindow:ClearAnchors()
+  DSSTWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, left, top)
+end
+--------------------------------------------------------------------------------
+ -- SAVE POSITION OF THE WINDOW WHEN MOVED
+ --------------------------------------------------------------------------------
+function DSST.OnIndicatorMoveStop()
+  DSST.savedVariables.left = DSSTWindow:GetLeft()
+  DSST.savedVariables.top = DSSTWindow:GetTop()
+end
+--------------------------------------------------------------------------------
+-- SHOW/HIDE THE WINDOW
 --------------------------------------------------------------------------------
 function DSST.showWindow()
 	DSST.checkBags()
-	if DSST.gSetList ~= "Custom" then
-		DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
-	else
-		DSST.UpdateScrollList(DSST.cScrollList, DSST.custSetList, 1) 
-	end	
+	--if DSST.gSetList ~= "Custom" then
+		DSST.UpdateScrollList(DSST.cScrollList, DSST.Collection[DSST.gSetList], 1) --DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
+	--else
+	--	DSST.UpdateScrollList(DSST.cScrollList, DSST.custSetList, 1) 
+	--end	
 
 	DSSTWindow:SetHidden(not DSSTWindow:IsControlHidden())
 end

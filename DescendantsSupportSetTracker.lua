@@ -1,6 +1,6 @@
 DSST = {}
 DSST.name = "DescendantsSupportSetTracker"
-DSST.version = "0.92"
+DSST.version = "0.93"
 DSST.variableVersion = 2
 --------------------------------------------------------------------------------
 -- LIBRARY IMPORTS
@@ -18,18 +18,19 @@ local LEGENDARY_GOLD = ZO_ColorDef:New("ffd817")
 -- GLOBAL VARIABLES
 --------------------------------------------------------------------------------
 DSST.hidden = true
-DSST.nameWidth = 450
 DSST.gSetList = nil
-DSST.custSetList = {}
 DSST.libSetsReady = false
 DSST.s2h = false
+DSST.fullSetTable = {}
+DSST.Collection = {}
+DSST.custSetList = {}
+DSST.nameWidth = 450
 DSST.collumns = 18
 DSST.width = 450+32*DSST.collumns
-DSST.fullSetTable = {}
+
 --------------------------------------------------------------------------------
 -- LOCAL VARIABLES
 --------------------------------------------------------------------------------
-local vXOffset = 20
 local setDump = ""
 
 
@@ -118,19 +119,19 @@ end
 --------------------------------------------------------------------------------
 -- GET THE OWNED ITEMS AND SAVE THEM INTO A SAVED VARIABLE 
 --------------------------------------------------------------------------------
-function DSST.getItems(bag)
-	local storageId = bag
+function DSST.getItems(iBag)
+	local storageId = iBag
 	if bag == BAG_BACKPACK then
 		storageId = GetCurrentCharacterId()	
 	end
-	for slotId=0,GetBagSize(bag) do
-		local _, _, _, _, _, equipType, _, quality = GetItemInfo(bag,slotId)
+	for slotId=0,GetBagSize(iBag) do
+		local _, _, _, _, _, equipType, _, quality = GetItemInfo(iBag,slotId)
 		if equipType ~= EQUIP_TYPE_INVALID then
-			local hasSet, _, _, _, _, setId = GetItemLinkSetInfo(GetItemLink(bag, slotId))
+			local hasSet, _, _, _, _, setId = GetItemLinkSetInfo(GetItemLink(iBag, slotId))
 			if hasSet then
 				eqType = tEquipType[equipType]
 				if eqType == -1 then
-					eqType = tWeaponType[GetItemWeaponType(bag,slotId)]
+					eqType = tWeaponType[GetItemWeaponType(iBag,slotId)]
 				end
 				if not DSST.accSavedVariables.setList[setId] then
 					DSST.accSavedVariables.setList[setId] = {[eqType] = {["quality"] = quality,["storage"] = storageId}}
@@ -147,7 +148,7 @@ function DSST.getItems(bag)
 	end
 end
 --------------------------------------------------------------------------------
--- DELETE SAVED VARIABLES FOR CURRENTLY AVAILALE STORAGES TO ACCOUTN FOR DECONSTRUCTION
+-- DELETE SAVED GEAR FOR CURRENTLY AVAILALE STORAGES TO ACCOUNT FOR DECONSTRUCTION
 --------------------------------------------------------------------------------
 function DSST.delCurrCharGear()
 	local storageId = GetCurrentCharacterId()
@@ -164,43 +165,9 @@ function DSST.delCurrCharGear()
 	end 
 end
 
-
 --------------------------------------------------------------------------------
--- Functions to adjust the window
+-- EVALUATE CURRENT GEAR PIECES
 --------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
--- RESTORE POSITION AFTER RELOAD UI/RELOG
---------------------------------------------------------------------------------
-function DSST:RestorePosition()
-  local left = self.savedVariables.left
-  local top = self.savedVariables.top
- 
-  DSSTWindow:ClearAnchors()
-  DSSTWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, left, top)
-end
---------------------------------------------------------------------------------
- -- SAVE POSITION OF THE WINDOW WHEN MOVED
- --------------------------------------------------------------------------------
-function DSST.OnIndicatorMoveStop()
-  DSST.savedVariables.left = DSSTWindow:GetLeft()
-  DSST.savedVariables.top = DSSTWindow:GetTop()
-end
-
---------------------------------------------------------------------------------
--- CHECK IF THE CURRENT PIECE IS RECONSTRUCTED
--- RETURN: RET =  TRUE/FALSE CURRENT PIECE IS IN ONE OFTHE STORAGES
---------------------------------------------------------------------------------
-function DSST.isReconstructed(set,piece)
-	local ret
-	if DSST.accSavedVariables.setList[set] and DSST.accSavedVariables.setList[set][piece] then 
-		ret = true
-	else
-		ret = false
-	end
-	
-	return ret
-end
 --------------------------------------------------------------------------------
 -- CHECK TYPE OF GEAR
 -- RETURN: RET = GEAR TYPE
@@ -211,6 +178,20 @@ function DSST.gearType(iLink)
 		eqType = tWeaponType[GetItemLinkWeaponType(iLink)]
 	end
 	return eqType
+end
+--------------------------------------------------------------------------------
+-- CHECK IF THE CURRENT PIECE IS RECONSTRUCTED
+-- RETURN: RET =  TRUE/FALSE CURRENT PIECE IS IN ONE OFTHE STORAGES
+--------------------------------------------------------------------------------
+function DSST.isReconstructed(iSet,iPiece)
+	local ret
+	if DSST.accSavedVariables.setList[iSet] and DSST.accSavedVariables.setList[iSet][iPiece] then 
+		ret = true
+	else
+		ret = false
+	end
+	
+	return ret
 end
 --------------------------------------------------------------------------------
 -- CHECK IF PIECES IS AVAILABLE FOR RECONSTRUCTION
@@ -231,17 +212,17 @@ function DSST.isUnlocked(iSetId, iPiece)
 	 return 4
 end
 --------------------------------------------------------------------------------
--- CHECK WHICH SET TYPE IS SELECTED AND CALL THE FUNCTIONS
+-- CHECK IF PIECE IS AVAILABLE AND IN WHICH QUALITY
 -- RETURN: LSTATE = 0 ERROR | 1 OWNED | 2 TRANSMUTE | 3 NOT OWNED | 4 N/A 
 --------------------------------------------------------------------------------
-function DSST.checkPiece(setId, pieceId)
-	local lState = DSST.isUnlocked(setId, pieceId)
+function DSST.checkPiece(iSetId, iPieceId)
+	local lState = DSST.isUnlocked(iSetId, iPieceId)
 	local lQuality = 0
 
 	if lState ~= 4 then
-		if DSST.isReconstructed(setId,pieceId) then-- USES THE ACTUAL SLOT OF THE PIECE
+		if DSST.isReconstructed(iSetId,iPieceId) then
 			lState = 1
-			lQuality = DSST.accSavedVariables.setList[setId][pieceId]["quality"] 
+			lQuality = DSST.accSavedVariables.setList[iSetId][iPieceId]["quality"] 
 		end
 	end
 	
@@ -249,61 +230,62 @@ function DSST.checkPiece(setId, pieceId)
 end
 --------------------------------------------------------------------------------
 -- FORMAT THE SET ROWS ACCORING TO PLAN IN XML FILE
- -- VSTATE = 0 ERROR | 1 OWNED | 2 TRANSMUTE | 3 NOT OWNED | 4 N/A 
+ -- LSTATE = 0 ERROR | 1 OWNED | 2 TRANSMUTE | 3 NOT OWNED | 4 N/A 
 --------------------------------------------------------------------------------
 
 function DSST.LayoutRow(rowControl, data, scrollList)
-	local xOffSet = DSST.nameWidth
-	local vState = 0
-	local vQuality = 0
-	local vColor = TRASH_WHITE
+	local lXOffSet = DSST.nameWidth
+	local lState = 0
+	local lQuality = 0
 
 	-- THE ROWCONTROL, DATA, AND SCROLLLISTCONTROL ARE ALL SUPPLIED BY THE INTERNAL CALLBACK TRIGGER
-	local cLabel = rowControl:GetNamedChild("Name") -- GET THE CHILD OF OUR VIRTUAL CONTROL IN THE XML CALELD NAME
+	local cLabel = rowControl:GetNamedChild("Name") -- GET THE CHILD OF OUR VIRTUAL CONTROL IN THE XML CALLED NAME
 	cLabel:SetFont("ZoFontWinH4")
 	cLabel:SetMaxLineCount(1) -- FORCES THE TEXT TO ONLY USE ONE ROW.  IF IT GOES LONGER, THE EXTRA WILL NOT DISPLAY.
+	
+	-- DISPALY THE RECONSTRUCTION COST - IF NO ITEMS ARE AVAILABLE DISPALY NA TO PREVENT AN ERROR
 	if GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA) then
 		cLabel:SetText(data.name.." ("..GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA).."|t16:16:esoui/art/currency/icon_seedcrystal.dds|t)") -- 
 	else
 		cLabel:SetText(data.name.." (N/A |t16:16:esoui/art/currency/icon_seedcrystal.dds|t)") -- 
 	end
 	
+	-- LOOP OVER ALL EQUIPMENT TYES TO DISPLAY 
 	for x = 1, DSST.collumns do
 		-- IF THERE IS ALREADY A BOX SELECT IT TO PREVENT ERRORS OTEHRWISE CREATE A NEW ONE 
 	    local cEntry = rowControl:GetNamedChild("Entry"..x)
     	if not cEntry then
 	    	cEntry = WINDOW_MANAGER:CreateControl("$(parent)Entry"..x, rowControl, CT_TEXTURE)
 	    end
-		cEntry:SetAnchor(LEFT, rowControl, LEFT,(xOffSet+(x-1)*30),0)
+		cEntry:SetAnchor(LEFT, rowControl, LEFT,(lXOffSet+(x-1)*30),0)
 		cEntry:SetDimensions(20, 20)
 		cEntry:SetHidden(false)
 		
 		-- THIS IS WHERE THE MAGIC HAPPENS
-		vState, vQuality = DSST.checkPiece(data.id, DSST.icons[x].pieceId)
+		lState, lQuality = DSST.checkPiece(data.id, DSST.icons[x].pieceId)
 		
 		
 		-- ASSIGN THE TEXTURE TO THE TABLE ENTRY
-		if vState == 1 then
+		if lState == 1 then -- THE GEAR PIECE IS AVAILABLE
 			cEntry:SetTexture("/esoui/art/cadwell/check.dds")
-			if vQuality == 1 or vQuality ==0 then
+			if lQuality == 1 or lQuality ==0 then
 				cEntry:SetColor(TRASH_WHITE:UnpackRGBA())
-			else if vQuality == 2 then
+			else if lQuality == 2 then
 				cEntry:SetColor(FINE_GREEN:UnpackRGBA())
-			else if vQuality == 3 then
+			else if lQuality == 3 then
 				cEntry:SetColor(SUPERIOR_BLUE:UnpackRGBA())
-			else if vQuality == 4 then
+			else if lQuality == 4 then
 				cEntry:SetColor(EPIC_PURPLE:UnpackRGBA())				
-			else if vQuality == 5 then
+			else if lQuality == 5 then
 				cEntry:SetColor(LEGENDARY_GOLD:UnpackRGBA())
 			end end end end end 
-
-		else if vState == 2 then
+		else if lState == 2 then -- THE GEAR PIECE IS RECONSTRUCTABLE
 			cEntry:SetTexture("esoui/art/currency/icon_seedcrystal.dds")
 			cEntry:SetColor(1, 1, 1)
-		else if vState == 3 then 
+		else if lState == 3 then  -- THE GEAR PIECE EXISTS BUT IS NOT OWNED
 			cEntry:SetTexture("/esoui/art/buttons/swatchframe_down.dds")
 			cEntry:SetColor(1, 1, 1)
-		else if vState == 4 then  
+		else if lState == 4 then  -- THE GEAR PIECE DOESN'T EXIST
 			cEntry:SetHidden(true) 
 		else
 			d("Descendants Support Set Tracker ran into an issue. Please reload UI and Try again. If that doesnt Fix the issue Please comment on ESOUI with E"..data.id.."-"..x.." as error number")
@@ -319,7 +301,8 @@ function DSST.checkBags()
 	DSST.getItems(BAG_BANK)
 	DSST.getItems(BAG_SUBSCRIBER_BANK)
 	DSST.getItems(BAG_WORN)
-	if GetUnitDisplayName('player') == GetCurrentHouseOwner() then -- ONLY CHECK HOSUE BANKS WHEN YOU ARE IN YOUR HOUSE
+	 -- ONLY CHECKS HOUSE BANKS WHEN YOU ARE IN ONE OF YOUR HOUSES
+	if GetUnitDisplayName('player') == GetCurrentHouseOwner() then
 		DSST.getItems(BAG_HOUSE_BANK_TEN)
 		DSST.getItems(BAG_HOUSE_BANK_NINE)
 		DSST.getItems(BAG_HOUSE_BANK_EIGHT)
@@ -333,102 +316,10 @@ function DSST.checkBags()
 	end
 end
 --------------------------------------------------------------------------------
--- SAVE A FULL LIST OF ALL SET NAMES
---------------------------------------------------------------------------------
-function DSST.saveSetTable()
-	if DSST.libSetsReady == true then
-		local setTable = LibSets.GetAllSetIds()
-		for set in pairs(setTable) do
-			if LibSets.IsCraftedSet(set) == false then
-				if LibSets.GetSetName(set) then
-					table.insert(DSST.fullSetTable, LibSets.GetSetName(set))	
-				end
-			end
-		end
-    end
-end
---------------------------------------------------------------------------------
--- TOGGLE 2 H WEAPON COLLUMNS
---------------------------------------------------------------------------------
-function DSST.show2H(iBool)
-	if iBool == true then
-		DSST.collumns = 22
-		DSST.width = 450+32*22
-	else if iBool == false then
-		DSST.collumns = 18
-		DSST.width = 450+32*18
-	end end
-	DSST.savedVariables.show2h = iBool
-	DSST.s2h = iBool
-end
---------------------------------------------------------------------------------
--- ADD SETS TO CUSTOM LIST
---------------------------------------------------------------------------------
-function DSST.addSet(iSetName)
-	local lSetId = nil
-	local lDuplicate = false
-	for setname in string.gmatch(iSetName, "[^,]+") do
-		if DSST.libSetsReady == true then
-			lSetId, _ = LibSets.GetSetByName(setname, "en")
-		else
-			DSST.lsLoaded()		
-			d("LibSets is currently Loading please try again in a few seconds")
-		end
-		if lSetId then
-			for _,colSet in pairs(DSST.custSetList) do
-				if colSet.id == lSetId then
-					lDuplicate = true
-					ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, setname.." is already in the Collection")
-					break
-				end
-			end
-			if lDuplicate == false then
-				table.insert(DSST.custSetList, {name = setname, id = lSetId})
-				DSST.accSavedVariables.customSetList = DSST.custSetList
-				d(setname.. " added to the Collection")
-			end 
-		else
-			ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, setname.." is not a valid set name")
-		end
-	end
-end
-
---------------------------------------------------------------------------------
--- REMOVE SETS FROM CUSTOM LIST
---------------------------------------------------------------------------------
-function DSST.removeSet(iSetName)
-	local lSetId = nil
-	local lDuplicate = false
-	for setname in string.gmatch(iSetName, "[^,]+") do
-		if DSST.libSetsReady == true then
-			lSetId, _ = LibSets.GetSetByName(setname, "en")
-		else
-			DSST.lsLoaded()		
-			d("LibSets is currently Loading please try again in a few seconds")
-		end
-		if lSetId then
-			for x,colSet in ipairs(DSST.custSetList) do
-				if colSet.id == lSetId then
-					lDuplicate = true
-					table.remove(DSST.custSetList,x)
-					DSST.accSavedVariables.customSetList = DSST.custSetList
-					d(setname.. " was removed from the Collection")	
-					break
-				end
-			end
-			if lDuplicate == false then
-				d(setname.. " removed from the Collection")
-			end 
-		else
-			ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, setname.." is not a valid set name")
-		end
-	end
-end
---------------------------------------------------------------------------------
 -- SLASH COMMANDS
 --------------------------------------------------------------------------------
 SLASH_COMMANDS["/dsst"] = function (extra)
-	-- toggle window on command
+	-- TOGGLE WINDOW ON COMMAND
 	DSST.showWindow()
 end
 
@@ -438,33 +329,51 @@ end
 --------------------------------------------------------------------------------
 function DSST:Initialize()
 	EVENT_MANAGER:RegisterForEvent(self.name)
-	-- SET UP SAVE VARIABLES
+--------------------------------------------------------------------------------
+-- SET UP SAVE VARIABLES
 	self.savedVariables = ZO_SavedVars:NewCharacterIdSettings("DSSTSavedVariables", DSST.variableVersion, nil, {})
 	self.accSavedVariables = ZO_SavedVars:NewAccountWide("DSSTSavedVariables", DSST.variableVersion, setList , {} , GetWorldName())
+--------------------------------------------------------------------------------
+-- CREATE AN EMPTY ARRAY SAVE VAR FOR THE SAVED GEAR IF THERE IS NONE
 	if not self.accSavedVariables.setList then
 		self.accSavedVariables.setList = {}
 	end
+--------------------------------------------------------------------------------
+-- SAVE IF 2H WEAPONS SHULD BE SHOWN
 	DSST.s2h = self.savedVariables.show2h or false
 	DSST.show2H(DSST.s2h)
+--------------------------------------------------------------------------------
+-- READ CUSTOM FARMING LIST FROM SAVED VAR
 	DSST.custSetList = DSST.accSavedVariables.customSetList or {}
-	-- READ SET LIST FROM SAVED VARIABLE
+--------------------------------------------------------------------------------
+-- READ SET LIST FROM SAVED VARIABLE
 	DSST.gSetList = self.savedVariables.setList or 'Default_Tank'
+--------------------------------------------------------------------------------
+-- DELETE SAVED GEAR FOR CURRENT CHAR AND CHECK BAGS FOR UNSAVED ITEMS
 	DSST.delCurrCharGear()
-	-- CHECK BAGS FOR UNSAVED ITEMS
 	DSST.checkBags()
-	-- CREATE FIRST PART OF THE UI 
+--------------------------------------------------------------------------------
+-- GENERATE THE WINDOW AND THE EMPTY SCROLLABLE LIST (DESCENDANTSSUPPORTSETTRACKERUI.LUA)
 	DSST.CreateMainWindowControl() 	
 	DSST.CreateScrollListControl() 
 	DSST.CreateScrollListDataType() 
-
-	-- GENERATE THE ADDON SETTINGS WITH LIBADDONMENU
+--------------------------------------------------------------------------------
+-- GENERATE THE ADDON SETTINGS WITH LIBADDONMENU (DESCENDANTSSUPPORTSETTRACKERSETTINGS.LUA)
 	DSST.setupSettings()
-	-- GENERATE REST OF THE UI
+--------------------------------------------------------------------------------
+-- GENERATE THE HEADDER ROW WITTH THE GEAR ICONS (DESCENDANTSSUPPORTSETTRACKERUI.LUA)
 	DSST.generateHeadder(gSetList)
-	-- CHECK IF LIB SETS LOADED PROPPERLY
+--------------------------------------------------------------------------------
+-- CHECK IF LIB SETS LOADED PROPPERLY
 	DSST.lsLoaded()
+--------------------------------------------------------------------------------
+-- SAVE ALL NON CRAFTABLE SETS INTO A TABLE FOR THE SETTINGS MENU
 	DSST.saveSetTable()
-	-- ADD HANDLERS FOR RESIZE AND MOVE TO THE MAIN WINDOW
+	
+	DSST.Collection = DSST.sets
+	table.insert(DSST.custSetList,DSST.sets)
+--------------------------------------------------------------------------------
+-- ADD HANDLERS FOR RESIZE AND MOVE TO THE MAIN WINDOW
 	DSST.cMainWindow:SetHandler("OnResizeStop", function(self)
 		if DSST.gSetList ~= "Custom" then
 			DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
@@ -473,13 +382,10 @@ function DSST:Initialize()
 		end	
 	end) 
 	DSST.cMainWindow:SetHandler("OnMoveStop", function(self) DSST.OnIndicatorMoveStop()  end) 
-	-- RESTORE THE SAVED POSITION OF THE WINDOW
-	self:RestorePosition()
+--------------------------------------------------------------------------------
+-- RESTORE THE SAVED POSITION OF THE WINDOW (DESCENDANTSSUPPORTSETTRACKERUI.LUA)
+	DSST:RestorePosition()
 end
-
-
- 
-
 
 function DSST.OnAddOnLoaded(event, addonName)
 
@@ -487,6 +393,8 @@ function DSST.OnAddOnLoaded(event, addonName)
     DSST:Initialize()
   end
 end
- 
-ZO_CreateStringId("SI_BINDING_NAME_DSST_TOGGLE",  "HIDE UI")
+ --------------------------------------------------------------------------------
+-- CREATE MENU ENTRY FOR THE KEYBIND (BINDINGS.XML)
+	ZO_CreateStringId("SI_BINDING_NAME_DSST_TOGGLE",  "Show/Hide UI")
+ --------------------------------------------------------------------------------
 EVENT_MANAGER:RegisterForEvent(DSST.name, EVENT_ADD_ON_LOADED, DSST.OnAddOnLoaded)
