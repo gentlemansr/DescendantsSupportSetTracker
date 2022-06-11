@@ -22,7 +22,6 @@ DSST.gSetList = nil
 DSST.libSetsReady = false
 DSST.s2h = false
 DSST.fullSetTable = {}
-DSST.Collection = {}
 DSST.custSetList = {}
 DSST.nameWidth = 450
 DSST.collumns = 18
@@ -369,9 +368,6 @@ function DSST:Initialize()
 --------------------------------------------------------------------------------
 -- SAVE ALL NON CRAFTABLE SETS INTO A TABLE FOR THE SETTINGS MENU
 	DSST.saveSetTable()
-	
-	DSST.Collection = DSST.sets
-	table.insert(DSST.custSetList,DSST.sets)
 --------------------------------------------------------------------------------
 -- ADD HANDLERS FOR RESIZE AND MOVE TO THE MAIN WINDOW
 	DSST.cMainWindow:SetHandler("OnResizeStop", function(self)

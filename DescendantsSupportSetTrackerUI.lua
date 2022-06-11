@@ -178,11 +178,11 @@ end
 --------------------------------------------------------------------------------
 function DSST.showWindow()
 	DSST.checkBags()
-	--if DSST.gSetList ~= "Custom" then
-		DSST.UpdateScrollList(DSST.cScrollList, DSST.Collection[DSST.gSetList], 1) --DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
-	--else
-	--	DSST.UpdateScrollList(DSST.cScrollList, DSST.custSetList, 1) 
-	--end	
+	if DSST.gSetList ~= "Custom" then
+		DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
+	else
+		DSST.UpdateScrollList(DSST.cScrollList, DSST.custSetList, 1) 
+	end	
 
 	DSSTWindow:SetHidden(not DSSTWindow:IsControlHidden())
 end

@@ -47,6 +47,7 @@ function DSST.addSet(iSetName)
 		else
 			DSST.lsLoaded()		
 			d("LibSets is currently Loading please try again in a few seconds")
+			ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "LibSets is currently Loading please try again in a few seconds")
 		end
 		if lSetId then
 			for _,colSet in pairs(DSST.custSetList) do
@@ -60,6 +61,7 @@ function DSST.addSet(iSetName)
 				table.insert(DSST.custSetList, {name = setname, id = lSetId})
 				DSST.accSavedVariables.customSetList = DSST.custSetList
 				d(setname.. " added to the Collection")
+				ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.POSITIVE_CLICK, setname.." was added to the Collection")
 			end 
 		else
 			ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, setname.." is not a valid set name")
@@ -79,6 +81,7 @@ function DSST.removeSet(iSetName)
 		else
 			DSST.lsLoaded()		
 			d("LibSets is currently Loading please try again in a few seconds")
+			ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "LibSets is currently Loading please try again in a few seconds")
 		end
 		if lSetId then
 			for x,colSet in ipairs(DSST.custSetList) do
@@ -87,11 +90,12 @@ function DSST.removeSet(iSetName)
 					table.remove(DSST.custSetList,x)
 					DSST.accSavedVariables.customSetList = DSST.custSetList
 					d(setname.. " was removed from the Collection")	
+					ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.POSITIVE_CLICK, setname.." was removed from the Collection")
 					break
 				end
 			end
 			if lDuplicate == false then
-				d(setname.. " removed from the Collection")
+				ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, setname.." wasn't in the collection :P")
 			end 
 		else
 			ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, setname.." is not a valid set name")
@@ -131,7 +135,7 @@ function DSST.setupSettings()
 			setFunc = function(value) 
 				DSST.gSetList = value 
 				DSST.savedVariables.setList = value
-				if DSST.hidden == false then
+				if DSSTWindow:IsControlHidden() == false then
 					if value ~= "Custom" then
 						DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
 					else
