@@ -1,6 +1,6 @@
 DSST = {}
 DSST.name = "DescendantsSupportSetTracker"
-DSST.version = "0.93"
+DSST.version = "0.98"
 DSST.variableVersion = 2
 --------------------------------------------------------------------------------
 -- LIBRARY IMPORTS
@@ -26,7 +26,8 @@ DSST.custSetList = {}
 DSST.nameWidth = 450
 DSST.collumns = 18
 DSST.width = 450+32*DSST.collumns
-
+DSST.showTransmute = true
+DSST.lang = ""
 --------------------------------------------------------------------------------
 -- LOCAL VARIABLES
 --------------------------------------------------------------------------------
@@ -119,27 +120,27 @@ end
 -- GET THE OWNED ITEMS AND SAVE THEM INTO A SAVED VARIABLE 
 --------------------------------------------------------------------------------
 function DSST.getItems(iBag)
-	local storageId = iBag
-	if bag == BAG_BACKPACK then
-		storageId = GetCurrentCharacterId()	
+	local lStorageId = iBag
+	if iBag == BAG_BACKPACK then
+		lStorageId = GetCurrentCharacterId()	
 	end
 	for slotId=0,GetBagSize(iBag) do
 		local _, _, _, _, _, equipType, _, quality = GetItemInfo(iBag,slotId)
 		if equipType ~= EQUIP_TYPE_INVALID then
 			local hasSet, _, _, _, _, setId = GetItemLinkSetInfo(GetItemLink(iBag, slotId))
 			if hasSet then
-				eqType = tEquipType[equipType]
-				if eqType == -1 then
-					eqType = tWeaponType[GetItemWeaponType(iBag,slotId)]
+				lEqType = tEquipType[equipType]
+				if lEqType == -1 then
+					lEqType = tWeaponType[GetItemWeaponType(iBag,slotId)]
 				end
 				if not DSST.accSavedVariables.setList[setId] then
-					DSST.accSavedVariables.setList[setId] = {[eqType] = {["quality"] = quality,["storage"] = storageId}}
-				else if DSST.accSavedVariables.setList[setId][eqType] then
-					if quality >= DSST.accSavedVariables.setList[setId][eqType]["quality"] then
-						DSST.accSavedVariables.setList[setId][eqType]= {["quality"] = quality,["storage"] = storageId}
+					DSST.accSavedVariables.setList[setId] = {[lEqType] = {["quality"] = quality,["storage"] = lStorageId}}
+				else if DSST.accSavedVariables.setList[setId][lEqType] then
+					if quality >= DSST.accSavedVariables.setList[setId][lEqType]["quality"] then
+						DSST.accSavedVariables.setList[setId][lEqType]= {["quality"] = quality,["storage"] = lStorageId}
 					end
 				else
-					DSST.accSavedVariables.setList[setId][eqType] = {["quality"] = quality,["storage"] = storageId}
+					DSST.accSavedVariables.setList[setId][lEqType] = {["quality"] = quality,["storage"] = lStorageId}
 					
 					end end
 			end
@@ -150,17 +151,17 @@ end
 -- DELETE SAVED GEAR FOR CURRENTLY AVAILALE STORAGES TO ACCOUNT FOR DECONSTRUCTION
 --------------------------------------------------------------------------------
 function DSST.delCurrCharGear()
-	local storageId = GetCurrentCharacterId()
-	local savList = {}
-	for setkey, lSet in pairs(DSST.accSavedVariables.setList) do
-		for pieceKey, lPiece in pairs(lSet) do
+	local lStorageId = GetCurrentCharacterId()
+	local lSavList = {}
+	for loSetkey, loSet in pairs(DSST.accSavedVariables.setList) do
+		for loPieceKey, loPiece in pairs(loSet) do
 
-			if lPiece.storage == storageId then
-				DSST.accSavedVariables.setList[setkey][pieceKey] = nil
+			if loPiece.storage == lStorageId then
+				DSST.accSavedVariables.setList[loSetkey][loPieceKey] = nil
 			end
 		end
-		lSet = savList
-		savList = {}
+		lSet = lSavList
+		lSavList = {}
 	end 
 end
 
@@ -172,11 +173,11 @@ end
 -- RETURN: RET = GEAR TYPE
 --------------------------------------------------------------------------------
 function DSST.gearType(iLink)
-	local eqType = tEquipType[GetItemLinkEquipType(iLink)]
-	if eqType == -1 then
-		eqType = tWeaponType[GetItemLinkWeaponType(iLink)]
+	local lEqType = tEquipType[GetItemLinkEquipType(iLink)]
+	if lEqType == -1 then
+		lEqType = tWeaponType[GetItemLinkWeaponType(iLink)]
 	end
-	return eqType
+	return lEqType
 end
 --------------------------------------------------------------------------------
 -- CHECK IF THE CURRENT PIECE IS RECONSTRUCTED
@@ -244,7 +245,11 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 	
 	-- DISPALY THE RECONSTRUCTION COST - IF NO ITEMS ARE AVAILABLE DISPALY NA TO PREVENT AN ERROR
 	if GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA) then
-		cLabel:SetText(data.name.." ("..GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA).."|t16:16:esoui/art/currency/icon_seedcrystal.dds|t)") -- 
+		if DSST.libSetsReady == true then
+			cLabel:SetText(LibSets.GetSetName(data.id,DSST.lang).." ("..GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA).."|t16:16:esoui/art/currency/icon_seedcrystal.dds|t)") -- 
+		else
+			cLabel:SetText(data.name.." ("..GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA).."|t16:16:esoui/art/currency/icon_seedcrystal.dds|t)")
+		end
 	else
 		cLabel:SetText(data.name.." (N/A |t16:16:esoui/art/currency/icon_seedcrystal.dds|t)") -- 
 	end
@@ -278,10 +283,10 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 			else if lQuality == 5 then
 				cEntry:SetColor(LEGENDARY_GOLD:UnpackRGBA())
 			end end end end end 
-		else if lState == 2 then -- THE GEAR PIECE IS RECONSTRUCTABLE
+		else if lState == 2 and DSST.showTransmute == true then -- THE GEAR PIECE IS RECONSTRUCTABLE
 			cEntry:SetTexture("esoui/art/currency/icon_seedcrystal.dds")
 			cEntry:SetColor(1, 1, 1)
-		else if lState == 3 then  -- THE GEAR PIECE EXISTS BUT IS NOT OWNED
+		else if lState == 3 or (lState == 2 and DSST.showTransmute == false) then  -- THE GEAR PIECE EXISTS BUT IS NOT OWNED
 			cEntry:SetTexture("/esoui/art/buttons/swatchframe_down.dds")
 			cEntry:SetColor(1, 1, 1)
 		else if lState == 4 then  -- THE GEAR PIECE DOESN'T EXIST
@@ -341,6 +346,7 @@ function DSST:Initialize()
 -- SAVE IF 2H WEAPONS SHULD BE SHOWN
 	DSST.s2h = self.savedVariables.show2h or false
 	DSST.show2H(DSST.s2h)
+
 --------------------------------------------------------------------------------
 -- READ CUSTOM FARMING LIST FROM SAVED VAR
 	DSST.custSetList = DSST.accSavedVariables.customSetList or {}
@@ -365,6 +371,9 @@ function DSST:Initialize()
 --------------------------------------------------------------------------------
 -- CHECK IF LIB SETS LOADED PROPPERLY
 	DSST.lsLoaded()
+--------------------------------------------------------------------------------
+-- SAVE THE CURRENT CLIENT LANGUAGE OR SVED VARIABLE TO THE RAM
+	DSST.lang = self.savedVariables.lang or LibSets.clientLang
 --------------------------------------------------------------------------------
 -- SAVE ALL NON CRAFTABLE SETS INTO A TABLE FOR THE SETTINGS MENU
 	DSST.saveSetTable()

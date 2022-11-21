@@ -15,7 +15,7 @@ function DSST.saveSetTable()
 		for set in pairs(setTable) do
 			if LibSets.IsCraftedSet(set) == false then
 				if LibSets.GetSetName(set) then
-					table.insert(DSST.fullSetTable, LibSets.GetSetName(set))	
+					table.insert(DSST.fullSetTable, LibSets.GetSetName(set,DSST.lang))	
 				end
 			end
 		end
@@ -43,7 +43,7 @@ function DSST.addSet(iSetName)
 	local lDuplicate = false
 	for setname in string.gmatch(iSetName, "[^,]+") do
 		if DSST.libSetsReady == true then
-			lSetId, _ = LibSets.GetSetByName(setname, "en")
+			lSetId, _ = LibSets.GetSetByName(setname, DSST.lang)
 		else
 			DSST.lsLoaded()		
 			d("LibSets is currently Loading please try again in a few seconds")
@@ -77,7 +77,7 @@ function DSST.removeSet(iSetName)
 	local lDuplicate = false
 	for setname in string.gmatch(iSetName, "[^,]+") do
 		if DSST.libSetsReady == true then
-			lSetId, _ = LibSets.GetSetByName(setname, "en")
+			lSetId, _ = LibSets.GetSetByName(setname, DSST.lang)
 		else
 			DSST.lsLoaded()		
 			d("LibSets is currently Loading please try again in a few seconds")
@@ -125,7 +125,7 @@ function DSST.setupSettings()
             width = "half",
             func = DSST.showWindow,
         },
-			    {
+		{
 			type = "dropdown",
 			name = "Set List",
 			tooltip = "Select a Set List to Display",
@@ -145,6 +145,28 @@ function DSST.setupSettings()
 			end
 		},
 		{
+			type = "dropdown",
+			name = "Language",
+			tooltip = "Select a language to Display the addon in",
+			default = LibSets.clientLang,
+			choices = {"en", "fr" ,"de", "rs","ru"},
+			tooltip = "To update the set list below you will need to reload ui after changing this setting",
+			getFunc = function() return DSST.lang end,
+			setFunc = function(value) 
+					DSST.savedVariables.lang = value
+					DSST.lang = value
+					if DSSTWindow:IsControlHidden() == false then
+					if value ~= "Custom" then
+						DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
+					else
+						DSST.UpdateScrollList(DSST.cScrollList, DSST.custSetList, 1) 
+					end
+				end
+			end
+		},
+		
+
+		{
 			type = "divider",
 			width = "full",
 		},
@@ -158,6 +180,23 @@ function DSST.setupSettings()
 				ReloadUI() 
 			end,
 			requiresReload = true,
+        },
+		{
+            type = "checkbox",
+            name = "Show Reconstruction Icon",
+            tooltip = "Show the transmute icon in the set list",
+            getFunc = function() return DSST.showTransmute end,
+            setFunc = function(value) 
+				DSST.showTransmute = value
+				if DSSTWindow:IsControlHidden() == false then
+					if value ~= "Custom" then
+						DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
+					else
+						DSST.UpdateScrollList(DSST.cScrollList, DSST.custSetList, 1) 
+					end
+				end
+			end,
+			requiresReload = false,
         },
 	    {
             type = "header",
@@ -181,7 +220,7 @@ function DSST.setupSettings()
 		{
             type = "editbox",
             name = "Set Names",
-            tooltip = "Add/Remove Set to/from the custom Collection (English Names only)",
+            tooltip = "Add/Remove Set to/from the custom Collection",
             getFunc = function() return setDump end,
             setFunc = function(value) 
 				if value then 

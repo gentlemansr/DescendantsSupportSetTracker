@@ -5,6 +5,15 @@ local vXOffset = 20
 -- HTTPS://WWW.ESOUI.COM/DOWNLOADS/INFO569-DSST.HTML
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+-- LOCAL FUNCTIONS FOR THE UI
+--------------------------------------------------------------------------------
+local function ControlOnMouseEnter(iControl)
+	iControl:SetColor(unpack(TEXT_COLOR_CONTEXT_HIGHLIGHT))
+end
+local function ControlOnMouseExit(iControl)
+	iControl:SetColor(255/255,216/255,23/255,1)
+end
+--------------------------------------------------------------------------------
 -- CREATE MAIN WINDOW IN XML
 --------------------------------------------------------------------------------
 function DSST.CreateMainWindowControl()
@@ -116,8 +125,12 @@ function DSST.generateHeadder()
 	cPlName:SetAnchor(TOPLEFT , DSSTWindow, TOPLEFT, xOffSet, xOffSet/2  )
 	cPlName:SetFont("ZoFontGameSmall")
 	cPlName:SetText("|cffd817"..GetUnitDisplayName('player').."|r")
-	
-	-- GENERATE BUTTON IN THE TOP RIGHT
+	--generate Total amount transmutes
+	local cTotTrans = CreateControl("$(parent)TotalTransmutes", DSSTWindow, CT_LABEL)
+	cTotTrans:SetAnchor(TOPLEFT , DSSTWindow, TOPLEFT, xOffSet, 2*xOffSet+5  )
+	cTotTrans:SetFont("ZoFontGameSmall")
+	cTotTrans:SetText("|t16:16:esoui/art/currency/icon_seedcrystal.dds|t"..GetCurrencyAmount(CURT_CHAOTIC_CREATIA,CURRENCY_LOCATION_ACCOUNT))
+	-- GENERATE CLOSE BUTTON IN THE TOP RIGHT
 	local cButton = CreateControl("$(parent)CloseButton", DSSTWindow, CT_BUTTON)
 	cButton:SetDimensions(20,20)
 	cButton:SetAnchor(TOPRIGHT, DSSTWindow, TOPRIGHT, -xOffSet, xOffSet)
@@ -125,10 +138,13 @@ function DSST.generateHeadder()
 	cButton:SetMouseOverTexture("/esoui/art/buttons/decline_over.dds")
 	cButton:SetPressedTexture("/esoui/art/buttons/decline_down.dds")
 	cButton:SetHandler("OnMouseDown", function(self) DSST.showWindow() end) 
+	cButton:SetHandler("OnMouseEnter", function(self) ZO_Tooltips_ShowTextTooltip(cButton, LEFT, "Close") end )
+	cButton:SetHandler("OnMouseExit", function(self) ZO_Tooltips_HideTextTooltip() end )
+	
 	
 	-- GENERATE SET LIST NAME TOP LEFT 
 	local cList = CreateControl("$(parent)SetList", DSSTWindow, CT_LABEL)
-	cList:SetAnchor(TOPLEFT, DSSTWindow, TOPLEFT, xOffSet, yOffset)
+	cList:SetAnchor(TOPLEFT, DSSTWindow, TOPLEFT, xOffSet, 4*xOffSet+5)
 	cList:SetFont("ZoFontGameSmall")
 	cList:SetText("SetList:  |cffd817"..DSST.gSetList.."|r")
 	xOffSet = xOffSet+DSST.nameWidth
@@ -137,13 +153,13 @@ function DSST.generateHeadder()
 	for y=1, DSST.collumns do 
 		if y ~= 0 then
 			-- IF NOT FIRST RUN THROUGH SHOW SLOT ICONS
-			local cIcon = CreateControl("$(parent)Piece"..y, DSSTWindow, CT_TEXTURE)
+			local cIcon = CreateControl("$(parent)Piece"..y, DSSTWindow, CT_BUTTON)
 			cIcon:SetDimensions(30, 30)
-			cIcon:SetTexture(DSST.icons[y].link)
+			cIcon:SetNormalTexture(DSST.icons[y].link)
 			cIcon:SetAnchor(TOPLEFT, DSSTWindow, TOPLEFT, xOffSet, yOffset)
-			cIcon:SetColor(255/255,216/255,23/255,1)
-			--cIcon:SetHandler("OnMouseEnter", function(self) ZO_Tooltips_ShowTextTooltip(cIcon, LEFT, "Stuff") end )
-			--cIcon:SetHandler("OnMouseExit", function(self) ZO_Tooltips_HideTextTooltip() end )
+			cIcon:SetNormalFontColor(255/255,216/255,23/255,1)
+			cIcon:SetHandler("OnMouseEnter", function(self) ZO_Tooltips_ShowTextTooltip(cIcon, LEFT, DSST.icons[y].name) end )
+			cIcon:SetHandler("OnMouseExit", function(self) ZO_Tooltips_HideTextTooltip() end )
 			xOffSet = xOffSet+30
 		else
 			-- IF FIRST RUN THROUGH SHOW WHICH SET LIST IS SELCTED 
@@ -178,11 +194,16 @@ end
 --------------------------------------------------------------------------------
 function DSST.showWindow()
 	DSST.checkBags()
+	if DSSTWindow:IsControlHidden() then
+		SCENE_MANAGER:SetInUIMode(true)
+	else
+		SCENE_MANAGER:SetInUIMode(false)
+	end
 	if DSST.gSetList ~= "Custom" then
 		DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
 	else
 		DSST.UpdateScrollList(DSST.cScrollList, DSST.custSetList, 1) 
 	end	
-
+	
 	DSSTWindow:SetHidden(not DSSTWindow:IsControlHidden())
 end
