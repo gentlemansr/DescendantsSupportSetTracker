@@ -1,7 +1,7 @@
 DSST = {}
 DSST.name = "DescendantsSupportSetTracker"
-DSST.version = "0.98"
-DSST.variableVersion = 2
+DSST.version = "0.99"
+DSST.variableVersion = 4
 --------------------------------------------------------------------------------
 -- LIBRARY IMPORTS
 --------------------------------------------------------------------------------
@@ -198,18 +198,20 @@ end
 -- RETURN: RET = TRUE/FALSE
 --------------------------------------------------------------------------------
 function DSST.isUnlocked(iSetId, iPiece) 
+	local ret = 4
 	for y = 1,GetNumItemSetCollectionPieces(iSetId) do
 	        local lPieceId = GetItemSetCollectionPieceInfo(iSetId, y)
 			local lEqType = DSST.gearType(GetItemSetCollectionPieceItemLink(lPieceId, LINK_STYLE_DEFAULT, ITEM_TRAIT_TYPE_NONE, nil))
 			if lEqType == iPiece then
 				if IsItemSetCollectionPieceUnlocked(lPieceId) then
-					return 2
-				else 
-					return 3
+					ret = 2
+				else if ret ~= 2 then
+					ret = 3
+					end 
 				end 
 			end
 	end
-	 return 4
+	return ret
 end
 --------------------------------------------------------------------------------
 -- CHECK IF PIECE IS AVAILABLE AND IN WHICH QUALITY

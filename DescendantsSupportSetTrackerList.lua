@@ -64,7 +64,6 @@ DSST.sets = {
 		{name="Spaulder of Ruin (Mythic)", id=627},
 	},
 	["Default_Tank"] = {    
-        {name="Aegis of Galenwe", id=388},
 		{name="Archdruid Devyric", id=666}, 
         {name="Arkasis’s Genius", id=518},    
         {name="Claw of Yolnahkriin", id=446},
@@ -83,7 +82,6 @@ DSST.sets = {
         {name="War Machine", id=331},
         {name="Way of Martial Knowledge", id=147},
 		{name="Pearlescent Ward", id=648 },
-        {name="Perfected Aegis of Galenwe", id=392},
         {name="Perfected Claw of Yolnahkriin", id=451},
 		{name="Perfected Pearlescent Ward", id=651},
         {name="Perfected Saxhleel Champion", id=589},
