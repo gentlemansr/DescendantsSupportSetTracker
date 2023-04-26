@@ -1,11 +1,12 @@
 DSST = {}
 DSST.name = "DescendantsSupportSetTracker"
-DSST.version = "0.99"
+DSST.version = "0.991"
 DSST.variableVersion = 2
 --------------------------------------------------------------------------------
 -- LIBRARY IMPORTS
 --------------------------------------------------------------------------------
 local LAM = LibAddonMenu2
+DSST.libSets_GetSetName = LibSets.GetSetName
 --------------------------------------------------------------------------------
 -- DEFINE LOCAL CONSTANTS
 --------------------------------------------------------------------------------
@@ -147,11 +148,12 @@ function DSST.getItems(iBag)
 		end
 	end
 end
+
 --------------------------------------------------------------------------------
 -- DELETE SAVED GEAR FOR CURRENTLY AVAILALE STORAGES TO ACCOUNT FOR DECONSTRUCTION
 --------------------------------------------------------------------------------
-function DSST.delCurrCharGear()
-	local lStorageId = GetCurrentCharacterId()
+function DSST.delCurrCharGear(iStorageId)
+	local lStorageId = iStorageId
 	local lSavList = {}
 	for loSetkey, loSet in pairs(DSST.accSavedVariables.setList) do
 		for loPieceKey, loPiece in pairs(loSet) do
@@ -164,7 +166,6 @@ function DSST.delCurrCharGear()
 		lSavList = {}
 	end 
 end
-
 --------------------------------------------------------------------------------
 -- EVALUATE CURRENT GEAR PIECES
 --------------------------------------------------------------------------------
@@ -248,12 +249,12 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 	-- DISPALY THE RECONSTRUCTION COST - IF NO ITEMS ARE AVAILABLE DISPALY NA TO PREVENT AN ERROR
 	if GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA) then
 		if DSST.libSetsReady == true then
-			cLabel:SetText(LibSets.GetSetName(data.id,DSST.lang).." ("..GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA).."|t16:16:esoui/art/currency/icon_seedcrystal.dds|t)") -- 
+			cLabel:SetText(DSST.libSets_GetSetName(data.id,DSST.lang).." ("..GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA).."|t16:16:esoui/art/currency/icon_seedcrystal.dds|t)") -- 
 		else
 			cLabel:SetText(data.name.." ("..GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA).."|t16:16:esoui/art/currency/icon_seedcrystal.dds|t)")
 		end
 	else
-		cLabel:SetText(data.name.." (N/A |t16:16:esoui/art/currency/icon_seedcrystal.dds|t)") -- 
+		cLabel:SetText(DSST.libSets_GetSetName(data.id,DSST.lang).." (N/A |t16:16:esoui/art/currency/icon_seedcrystal.dds|t)") -- 
 	end
 	
 	-- LOOP OVER ALL EQUIPMENT TYES TO DISPLAY 
@@ -357,7 +358,7 @@ function DSST:Initialize()
 	DSST.gSetList = self.savedVariables.setList or 'Default_Tank'
 --------------------------------------------------------------------------------
 -- DELETE SAVED GEAR FOR CURRENT CHAR AND CHECK BAGS FOR UNSAVED ITEMS
-	DSST.delCurrCharGear()
+	DSST.delCurrCharGear(GetCurrentCharacterId())
 	DSST.checkBags()
 --------------------------------------------------------------------------------
 -- GENERATE THE WINDOW AND THE EMPTY SCROLLABLE LIST (DESCENDANTSSUPPORTSETTRACKERUI.LUA)

@@ -2,7 +2,7 @@
 -- LIBRARY IMPORTS
 --------------------------------------------------------------------------------
 local LAM = LibAddonMenu2
-
+local supportedLang = {de,en,es,fr,ru,zh}
 --------------------------------------------------------------------------------
 -- FUNCTIONS FOR THE SETTINGS
 --------------------------------------------------------------------------------
@@ -14,8 +14,8 @@ function DSST.saveSetTable()
 		local setTable = LibSets.GetAllSetIds()
 		for set in pairs(setTable) do
 			if LibSets.IsCraftedSet(set) == false then
-				if LibSets.GetSetName(set) then
-					table.insert(DSST.fullSetTable, LibSets.GetSetName(set,DSST.lang))	
+				if DSST.libSets_GetSetName(set,DSST.lang) then
+					table.insert(DSST.fullSetTable, DSST.libSets_GetSetName(set,DSST.lang))	
 				end
 			end
 		end
@@ -135,7 +135,7 @@ function DSST.setupSettings()
 			setFunc = function(value) 
 				DSST.gSetList = value 
 				DSST.savedVariables.setList = value
-				if DSSTWindow:IsControlHidden() == false then
+				if DSSTWindow:IsControl() == false then
 					if value ~= "Custom" then
 						DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
 					else
@@ -149,7 +149,7 @@ function DSST.setupSettings()
 			name = "Language",
 			tooltip = "Select a language to Display the addon in",
 			default = LibSets.clientLang,
-			choices = {"en", "fr" ,"de", "rs","ru"},
+			choices = {"de","en","es","fr","ru","zh"},
 			tooltip = "To update the set list below you will need to reload ui after changing this setting",
 			getFunc = function() return DSST.lang end,
 			setFunc = function(value) 

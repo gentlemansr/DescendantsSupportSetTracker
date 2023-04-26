@@ -103,7 +103,9 @@ function DSST.UpdateScrollList(control, data, rowType)
 	end
 	ZO_ScrollList_Commit(control)
 end
-
+function DSST.generateSetListDropDown()
+	
+end
 --------------------------------------------------------------------------------
 -- GENERATE HEADDER ICON ROW 
 --------------------------------------------------------------------------------
@@ -131,15 +133,51 @@ function DSST.generateHeadder()
 	cTotTrans:SetFont("ZoFontGameSmall")
 	cTotTrans:SetText("|t16:16:esoui/art/currency/icon_seedcrystal.dds|t"..GetCurrencyAmount(CURT_CHAOTIC_CREATIA,CURRENCY_LOCATION_ACCOUNT))
 	-- GENERATE CLOSE BUTTON IN THE TOP RIGHT
-	local cButton = CreateControl("$(parent)CloseButton", DSSTWindow, CT_BUTTON)
-	cButton:SetDimensions(20,20)
-	cButton:SetAnchor(TOPRIGHT, DSSTWindow, TOPRIGHT, -xOffSet, xOffSet)
-	cButton:SetNormalTexture("/esoui/art/buttons/decline_up.dds")
-	cButton:SetMouseOverTexture("/esoui/art/buttons/decline_over.dds")
-	cButton:SetPressedTexture("/esoui/art/buttons/decline_down.dds")
-	cButton:SetHandler("OnMouseDown", function(self) DSST.showWindow() end) 
-	cButton:SetHandler("OnMouseEnter", function(self) ZO_Tooltips_ShowTextTooltip(cButton, LEFT, "Close") end )
-	cButton:SetHandler("OnMouseExit", function(self) ZO_Tooltips_HideTextTooltip() end )
+	local cCloseButton = CreateControl("$(parent)CloseButton", DSSTWindow, CT_BUTTON)
+	cCloseButton:SetDimensions(20,20)
+	cCloseButton:SetAnchor(TOPRIGHT, DSSTWindow, TOPRIGHT, -xOffSet, xOffSet)
+	cCloseButton:SetNormalTexture("/esoui/art/buttons/decline_up.dds")
+	cCloseButton:SetMouseOverTexture("/esoui/art/buttons/decline_over.dds")
+	cCloseButton:SetPressedTexture("/esoui/art/buttons/decline_down.dds")
+	cCloseButton:SetHandler("OnMouseDown", function(self) DSST.showWindow() end) 
+	cCloseButton:SetHandler("OnMouseEnter", function(self) ZO_Tooltips_ShowTextTooltip(cCloseButton, LEFT, "Close") end )
+	cCloseButton:SetHandler("OnMouseExit", function(self) ZO_Tooltips_HideTextTooltip() end )
+	
+	-- GENERATE UPDATE BUTTON IN THE TOP RIGHT
+	local cUpdateButton = CreateControl("$(parent)UpdateButton", DSSTWindow, CT_BUTTON)
+	cUpdateButton:SetDimensions(20,20)
+	cUpdateButton:SetAnchor(TOPRIGHT, DSSTWindow, TOPRIGHT, -3*xOffSet, xOffSet)
+	cUpdateButton:SetNormalTexture("/esoui/art/chatwindow/chat_scrollbar_endarrow_up.dds")
+	cUpdateButton:SetMouseOverTexture("/esoui/art/chatwindow/chat_scrollbar_endarrow_over.dds")
+	cUpdateButton:SetPressedTexture("/esoui/art/chatwindow/chat_scrollbar_endarrow_down.dds")
+	cUpdateButton:SetHandler("OnMouseDown", function(self) 
+		DSST.delCurrCharGear(GetCurrentCharacterId())
+		DSST.delCurrCharGear(BAG_BACKPACK)
+		DSST.delCurrCharGear(BAG_BANK)
+		DSST.delCurrCharGear(BAG_SUBSCRIBER_BANK)
+		DSST.delCurrCharGear(BAG_WORN)
+		-- ONLY CHECKS HOUSE BANKS WHEN YOU ARE IN ONE OF YOUR HOUSES
+		if GetUnitDisplayName('player') == GetCurrentHouseOwner() then
+			DSST.delCurrCharGear(BAG_HOUSE_BANK_TEN)
+			DSST.delCurrCharGear(BAG_HOUSE_BANK_NINE)
+			DSST.delCurrCharGear(BAG_HOUSE_BANK_EIGHT)
+			DSST.delCurrCharGear(BAG_HOUSE_BANK_SEVEN)
+			DSST.delCurrCharGear(BAG_HOUSE_BANK_SIX)
+			DSST.delCurrCharGear(BAG_HOUSE_BANK_FIVE)
+			DSST.delCurrCharGear(BAG_HOUSE_BANK_FOUR)
+			DSST.delCurrCharGear(BAG_HOUSE_BANK_THREE)
+			DSST.delCurrCharGear(BAG_HOUSE_BANK_TWO)
+			DSST.delCurrCharGear(BAG_HOUSE_BANK_ONE)
+		end
+		DSST.checkBags();
+		if DSST.gSetList ~= "Custom" then
+			DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
+		else
+			DSST.UpdateScrollList(DSST.cScrollList, DSST.custSetList, 1) 
+		end
+	end) 
+	cUpdateButton:SetHandler("OnMouseEnter", function(self) ZO_Tooltips_ShowTextTooltip(cUpdateButton, LEFT, "Force Update") end )
+	cUpdateButton:SetHandler("OnMouseExit", function(self) ZO_Tooltips_HideTextTooltip() end )
 	
 	
 	-- GENERATE SET LIST NAME TOP LEFT 
@@ -193,6 +231,24 @@ end
 -- SHOW/HIDE THE WINDOW
 --------------------------------------------------------------------------------
 function DSST.showWindow()
+	DSST.delCurrCharGear(GetCurrentCharacterId())
+	DSST.delCurrCharGear(BAG_BACKPACK)
+	DSST.delCurrCharGear(BAG_BANK)
+	DSST.delCurrCharGear(BAG_SUBSCRIBER_BANK)
+	DSST.delCurrCharGear(BAG_WORN)
+	-- ONLY CHECKS HOUSE BANKS WHEN YOU ARE IN ONE OF YOUR HOUSES
+	if GetUnitDisplayName('player') == GetCurrentHouseOwner() then
+		DSST.delCurrCharGear(BAG_HOUSE_BANK_TEN)
+		DSST.delCurrCharGear(BAG_HOUSE_BANK_NINE)
+		DSST.delCurrCharGear(BAG_HOUSE_BANK_EIGHT)
+		DSST.delCurrCharGear(BAG_HOUSE_BANK_SEVEN)
+		DSST.delCurrCharGear(BAG_HOUSE_BANK_SIX)
+		DSST.delCurrCharGear(BAG_HOUSE_BANK_FIVE)
+		DSST.delCurrCharGear(BAG_HOUSE_BANK_FOUR)
+		DSST.delCurrCharGear(BAG_HOUSE_BANK_THREE)
+		DSST.delCurrCharGear(BAG_HOUSE_BANK_TWO)
+		DSST.delCurrCharGear(BAG_HOUSE_BANK_ONE)
+	end
 	DSST.checkBags()
 	if DSSTWindow:IsControlHidden() then
 		SCENE_MANAGER:SetInUIMode(true)
