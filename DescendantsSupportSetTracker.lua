@@ -1,12 +1,13 @@
 DSST = {}
 DSST.name = "DescendantsSupportSetTracker"
-DSST.version = "0.991"
+DSST.version = "1.0.0"
 DSST.variableVersion = 2
 --------------------------------------------------------------------------------
 -- LIBRARY IMPORTS
 --------------------------------------------------------------------------------
 local LAM = LibAddonMenu2
 DSST.libSets_GetSetName = LibSets.GetSetName
+
 --------------------------------------------------------------------------------
 -- DEFINE LOCAL CONSTANTS
 --------------------------------------------------------------------------------
@@ -32,8 +33,6 @@ DSST.lang = ""
 --------------------------------------------------------------------------------
 -- LOCAL VARIABLES
 --------------------------------------------------------------------------------
-local setDump = ""
-
 
 --------------------------------------------------------------------------------
 -- ARRAY OF ICONS FOR THE HEADDERLINE
@@ -49,7 +48,6 @@ DSST.icons = {
 	{pieceId=7 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_feet.dds", name="Feet"},
 	{pieceId=8 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_neck.dds", name="Necklace"},
 	{pieceId=9 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_ring.dds", name="Ring"},
-	--{pieceId=9 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_ring.dds"},
 	{pieceId=10 ,link="esoui/art/icons/gear_breton_dagger_d.dds", name="Dagger"},
 	{pieceId=11 ,link="esoui/art/icons/gear_breton_1haxe_d.dds", name="Axe"},
 	{pieceId=12 ,link="esoui/art/icons/gear_breton_1hhammer_d.dds", name="Hammer"},
@@ -148,7 +146,6 @@ function DSST.getItems(iBag)
 		end
 	end
 end
-
 --------------------------------------------------------------------------------
 -- DELETE SAVED GEAR FOR CURRENTLY AVAILALE STORAGES TO ACCOUNT FOR DECONSTRUCTION
 --------------------------------------------------------------------------------
@@ -165,6 +162,28 @@ function DSST.delCurrCharGear(iStorageId)
 		lSet = lSavList
 		lSavList = {}
 	end 
+end
+--------------------------------------------------------------------------------
+-- CHECK ALL BAGS IN ONE CALL 
+--------------------------------------------------------------------------------
+function DSST.checkBags()
+	DSST.getItems(BAG_BACKPACK)
+	DSST.getItems(BAG_BANK)
+	DSST.getItems(BAG_SUBSCRIBER_BANK)
+	DSST.getItems(BAG_WORN)
+	 -- ONLY CHECKS HOUSE BANKS WHEN YOU ARE IN ONE OF YOUR HOUSES
+	if GetUnitDisplayName('player') == GetCurrentHouseOwner() then
+		DSST.getItems(BAG_HOUSE_BANK_TEN)
+		DSST.getItems(BAG_HOUSE_BANK_NINE)
+		DSST.getItems(BAG_HOUSE_BANK_EIGHT)
+		DSST.getItems(BAG_HOUSE_BANK_SEVEN)
+		DSST.getItems(BAG_HOUSE_BANK_SIX)
+		DSST.getItems(BAG_HOUSE_BANK_FIVE)
+		DSST.getItems(BAG_HOUSE_BANK_FOUR)
+		DSST.getItems(BAG_HOUSE_BANK_THREE)
+		DSST.getItems(BAG_HOUSE_BANK_TWO)
+		DSST.getItems(BAG_HOUSE_BANK_ONE)
+	end
 end
 --------------------------------------------------------------------------------
 -- EVALUATE CURRENT GEAR PIECES
@@ -191,7 +210,6 @@ function DSST.isReconstructed(iSet,iPiece)
 	else
 		ret = false
 	end
-	
 	return ret
 end
 --------------------------------------------------------------------------------
@@ -240,7 +258,7 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 	local lXOffSet = DSST.nameWidth
 	local lState = 0
 	local lQuality = 0
-
+	rankPieces = 0
 	-- THE ROWCONTROL, DATA, AND SCROLLLISTCONTROL ARE ALL SUPPLIED BY THE INTERNAL CALLBACK TRIGGER
 	local cLabel = rowControl:GetNamedChild("Name") -- GET THE CHILD OF OUR VIRTUAL CONTROL IN THE XML CALLED NAME
 	cLabel:SetFont("ZoFontWinH4")
@@ -267,10 +285,8 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 		cEntry:SetAnchor(LEFT, rowControl, LEFT,(lXOffSet+(x-1)*30),0)
 		cEntry:SetDimensions(20, 20)
 		cEntry:SetHidden(false)
-		
 		-- THIS IS WHERE THE MAGIC HAPPENS
 		lState, lQuality = DSST.checkPiece(data.id, DSST.icons[x].pieceId)
-		
 		
 		-- ASSIGN THE TEXTURE TO THE TABLE ENTRY
 		if lState == 1 then -- THE GEAR PIECE IS AVAILABLE
@@ -299,28 +315,6 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 		end end end end-- ends elifs
 	end
 	
-end
---------------------------------------------------------------------------------
--- CHECK ALL BAGS IN ONE CALL 
---------------------------------------------------------------------------------
-function DSST.checkBags()
-	DSST.getItems(BAG_BACKPACK)
-	DSST.getItems(BAG_BANK)
-	DSST.getItems(BAG_SUBSCRIBER_BANK)
-	DSST.getItems(BAG_WORN)
-	 -- ONLY CHECKS HOUSE BANKS WHEN YOU ARE IN ONE OF YOUR HOUSES
-	if GetUnitDisplayName('player') == GetCurrentHouseOwner() then
-		DSST.getItems(BAG_HOUSE_BANK_TEN)
-		DSST.getItems(BAG_HOUSE_BANK_NINE)
-		DSST.getItems(BAG_HOUSE_BANK_EIGHT)
-		DSST.getItems(BAG_HOUSE_BANK_SEVEN)
-		DSST.getItems(BAG_HOUSE_BANK_SIX)
-		DSST.getItems(BAG_HOUSE_BANK_FIVE)
-		DSST.getItems(BAG_HOUSE_BANK_FOUR)
-		DSST.getItems(BAG_HOUSE_BANK_THREE)
-		DSST.getItems(BAG_HOUSE_BANK_TWO)
-		DSST.getItems(BAG_HOUSE_BANK_ONE)
-	end
 end
 --------------------------------------------------------------------------------
 -- SLASH COMMANDS
@@ -369,16 +363,13 @@ function DSST:Initialize()
 -- GENERATE THE ADDON SETTINGS WITH LIBADDONMENU (DESCENDANTSSUPPORTSETTRACKERSETTINGS.LUA)
 	DSST.setupSettings()
 --------------------------------------------------------------------------------
--- GENERATE THE HEADDER ROW WITTH THE GEAR ICONS (DESCENDANTSSUPPORTSETTRACKERUI.LUA)
-	DSST.generateHeadder(gSetList)
---------------------------------------------------------------------------------
 -- CHECK IF LIB SETS LOADED PROPPERLY
 	DSST.lsLoaded()
 --------------------------------------------------------------------------------
--- SAVE THE CURRENT CLIENT LANGUAGE OR SVED VARIABLE TO THE RAM
+-- SAVE THE CURRENT CLIENT LANGUAGE OR SAVED VARIABLE
 	DSST.lang = self.savedVariables.lang or LibSets.clientLang
 --------------------------------------------------------------------------------
--- SAVE ALL NON CRAFTABLE SETS INTO A TABLE FOR THE SETTINGS MENU
+-- SAVE ALL NON CRAFTABLE SETS INTO A TABLE FOR THE SETTINGS MENU (DESCENDANTSSUPPORTSETTRACKERSETTINGS.LUA)
 	DSST.saveSetTable()
 --------------------------------------------------------------------------------
 -- ADD HANDLERS FOR RESIZE AND MOVE TO THE MAIN WINDOW

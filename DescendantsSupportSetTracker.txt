@@ -4,7 +4,7 @@
 ; States and/or other countries. All rights reserved.
 ; You can read the full terms at https://account.elderscrollsonline.com/add-on-terms
 ## Title: |caeba00DescendantsSupportSetTracker|r
-## Version: 0.991
+## Version: 1.0.0
 ## Description: Tracker for Support sets Written by the Descendants of the Dwemer player
 ## DependsOn: LibAddonMenu-2.0>=32 LibSets>=00308
 ## Author: |caeba00Sven_re|r
@@ -14,6 +14,7 @@
 DescendantsSupportSetTracker.lua
 DescendantsSupportSetTrackerSettings.lua
 DescendantsSupportSetTrackerList.lua
+DescendantsSupportSetTrackerRank.lua
 DescendantsSupportSetTracker.xml
 DescendantsSupportSetTrackerUI.lua
 bindings.xml

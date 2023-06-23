@@ -103,9 +103,6 @@ function DSST.UpdateScrollList(control, data, rowType)
 	end
 	ZO_ScrollList_Commit(control)
 end
-function DSST.generateSetListDropDown()
-	
-end
 --------------------------------------------------------------------------------
 -- GENERATE HEADDER ICON ROW 
 --------------------------------------------------------------------------------
@@ -115,7 +112,10 @@ function DSST.generateHeadder()
 	local xOffSet = vXOffset/2
 	
 	-- CREATE ADDON TITLE
-	local cTitle = CreateControl("$(parent)Titel", DSSTWindow, CT_LABEL)
+	local cTitle = DSSTWindow:GetNamedChild("Titel")
+    if not cTitle then
+	    cTitle = WINDOW_MANAGER:CreateControl("$(parent)Titel", DSSTWindow, CT_LABEL)
+	end
 	cTitle:SetAnchor(nil , DSSTWindow, nil )
 	cTitle:SetWidth(DSST.width)
 	cTitle:SetHorizontalAlignment(TEXT_ALIGN_CENTER)
@@ -123,17 +123,26 @@ function DSST.generateHeadder()
 	cTitle:SetText("|cffd817Descendants Support Set Tracker|r")
 	
 	--GENERATE PALYER NAME TOP LEFT
-	local cPlName = CreateControl("$(parent)PlayerName", DSSTWindow, CT_LABEL)
+	local cPlName = DSSTWindow:GetNamedChild("PlayerName")
+    if not cPlName then
+	    cPlName = WINDOW_MANAGER:CreateControl("$(parent)PlayerName", DSSTWindow, CT_LABEL)
+	end
 	cPlName:SetAnchor(TOPLEFT , DSSTWindow, TOPLEFT, xOffSet, xOffSet/2  )
 	cPlName:SetFont("ZoFontGameSmall")
 	cPlName:SetText("|cffd817"..GetUnitDisplayName('player').."|r")
 	--generate Total amount transmutes
-	local cTotTrans = CreateControl("$(parent)TotalTransmutes", DSSTWindow, CT_LABEL)
+	local cTotTrans = DSSTWindow:GetNamedChild("TotalTransmutes")
+    if not cTotTrans then
+	    cTotTrans = WINDOW_MANAGER:CreateControl("$(parent)TotalTransmutes", DSSTWindow, CT_LABEL)
+	end
 	cTotTrans:SetAnchor(TOPLEFT , DSSTWindow, TOPLEFT, xOffSet, 2*xOffSet+5  )
 	cTotTrans:SetFont("ZoFontGameSmall")
 	cTotTrans:SetText("|t16:16:esoui/art/currency/icon_seedcrystal.dds|t"..GetCurrencyAmount(CURT_CHAOTIC_CREATIA,CURRENCY_LOCATION_ACCOUNT))
 	-- GENERATE CLOSE BUTTON IN THE TOP RIGHT
-	local cCloseButton = CreateControl("$(parent)CloseButton", DSSTWindow, CT_BUTTON)
+	local cCloseButton = DSSTWindow:GetNamedChild("CloseButton")
+    if not cCloseButton then
+		cCloseButton = WINDOW_MANAGER:CreateControl("$(parent)CloseButton", DSSTWindow, CT_BUTTON)
+	end
 	cCloseButton:SetDimensions(20,20)
 	cCloseButton:SetAnchor(TOPRIGHT, DSSTWindow, TOPRIGHT, -xOffSet, xOffSet)
 	cCloseButton:SetNormalTexture("/esoui/art/buttons/decline_up.dds")
@@ -144,7 +153,10 @@ function DSST.generateHeadder()
 	cCloseButton:SetHandler("OnMouseExit", function(self) ZO_Tooltips_HideTextTooltip() end )
 	
 	-- GENERATE UPDATE BUTTON IN THE TOP RIGHT
-	local cUpdateButton = CreateControl("$(parent)UpdateButton", DSSTWindow, CT_BUTTON)
+	local cUpdateButton = DSSTWindow:GetNamedChild("UpdateButton")
+    if not cUpdateButton then
+		cUpdateButton = WINDOW_MANAGER:CreateControl("$(parent)UpdateButton", DSSTWindow, CT_BUTTON)
+	end
 	cUpdateButton:SetDimensions(20,20)
 	cUpdateButton:SetAnchor(TOPRIGHT, DSSTWindow, TOPRIGHT, -3*xOffSet, xOffSet)
 	cUpdateButton:SetNormalTexture("/esoui/art/chatwindow/chat_scrollbar_endarrow_up.dds")
@@ -181,7 +193,10 @@ function DSST.generateHeadder()
 	
 	
 	-- GENERATE SET LIST NAME TOP LEFT 
-	local cList = CreateControl("$(parent)SetList", DSSTWindow, CT_LABEL)
+	local cList = DSSTWindow:GetNamedChild("SetList")
+    if not cList then
+		cList = WINDOW_MANAGER:CreateControl("$(parent)SetList", DSSTWindow, CT_LABEL)
+	end
 	cList:SetAnchor(TOPLEFT, DSSTWindow, TOPLEFT, xOffSet, 4*xOffSet+5)
 	cList:SetFont("ZoFontGameSmall")
 	cList:SetText("SetList:  |cffd817"..DSST.gSetList.."|r")
@@ -191,7 +206,10 @@ function DSST.generateHeadder()
 	for y=1, DSST.collumns do 
 		if y ~= 0 then
 			-- IF NOT FIRST RUN THROUGH SHOW SLOT ICONS
-			local cIcon = CreateControl("$(parent)Piece"..y, DSSTWindow, CT_BUTTON)
+			local cIcon = DSSTWindow:GetNamedChild("Piece"..y)
+			if not cIcon then
+				cIcon = CreateControl("$(parent)Piece"..y, DSSTWindow, CT_BUTTON)
+			end
 			cIcon:SetDimensions(30, 30)
 			cIcon:SetNormalTexture(DSST.icons[y].link)
 			cIcon:SetAnchor(TOPLEFT, DSSTWindow, TOPLEFT, xOffSet, yOffset)
@@ -231,6 +249,7 @@ end
 -- SHOW/HIDE THE WINDOW
 --------------------------------------------------------------------------------
 function DSST.showWindow()
+	DSST.generateHeadder(gSetList)
 	DSST.delCurrCharGear(GetCurrentCharacterId())
 	DSST.delCurrCharGear(BAG_BACKPACK)
 	DSST.delCurrCharGear(BAG_BANK)

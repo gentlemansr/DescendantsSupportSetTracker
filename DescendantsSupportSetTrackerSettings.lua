@@ -19,6 +19,7 @@ function DSST.saveSetTable()
 				end
 			end
 		end
+		table.sort(DSST.fullSetTable, function(a, b) return a < b end)
     end
 end
 --------------------------------------------------------------------------------
@@ -164,8 +165,16 @@ function DSST.setupSettings()
 				end
 			end
 		},
-		
-
+		{
+            type = "button",
+            name = "Reset Position",
+            tooltip = "Resets the Position to the Center of the Screen",
+            width = "half",
+            func = function(value)   
+				DSST.cMainWindow:SetAnchor(CENTER, GuiRoot, nil, 0 , 0)
+				DSST.OnIndicatorMoveStop()
+			end,
+        },
 		{
 			type = "divider",
 			width = "full",
@@ -209,7 +218,6 @@ function DSST.setupSettings()
 			tooltip = "Add/Remove Set to/from the custom Collection",
 			choices = DSST.fullSetTable,
 			scrollable = true,
-			sort = "name-up",
 			getFunc = function() return nil end,
 			setFunc = function(value) 
 				if value then 
