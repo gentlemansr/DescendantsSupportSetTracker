@@ -131,12 +131,12 @@ function DSST.setupSettings()
 			name = "Set List",
 			tooltip = "Select a Set List to Display",
 			default = 'Default_Tank',
-			choices = {"Default_Healer", "Default_Tank" ,"DOTD_Healer", "DOTD_Tank","IP_Healer_U33","IP_Tank_U33", "Custom"},
+			choices = {"Default_Healer", "Default_Tank" , "Default_DD" ,"DOTD_Healer" , "DOTD_Tank","IP_Healer_U33","IP_Tank_U33", "Custom"},
 			getFunc = function() return DSST.gSetList end,
 			setFunc = function(value) 
 				DSST.gSetList = value 
 				DSST.savedVariables.setList = value
-				if DSSTWindow:IsControl() == false then
+				if DSSTWindow:IsControlHidden() == false then
 					if value ~= "Custom" then
 						DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
 					else

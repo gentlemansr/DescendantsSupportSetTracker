@@ -265,14 +265,18 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 	cLabel:SetMaxLineCount(1) -- FORCES THE TEXT TO ONLY USE ONE ROW.  IF IT GOES LONGER, THE EXTRA WILL NOT DISPLAY.
 	
 	-- DISPALY THE RECONSTRUCTION COST - IF NO ITEMS ARE AVAILABLE DISPALY NA TO PREVENT AN ERROR
-	if GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA) then
-		if DSST.libSetsReady == true then
-			cLabel:SetText(DSST.libSets_GetSetName(data.id,DSST.lang).." ("..GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA).."|t16:16:esoui/art/currency/icon_seedcrystal.dds|t)") -- 
+	if data.id ~= 0 then
+		if GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA) then
+			if DSST.libSetsReady == true then
+				cLabel:SetText(DSST.libSets_GetSetName(data.id,DSST.lang).." ("..GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA).."|t16:16:esoui/art/currency/icon_seedcrystal.dds|t)") -- 
+			else
+				cLabel:SetText(data.name.." ("..GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA).."|t16:16:esoui/art/currency/icon_seedcrystal.dds|t)")
+			end
 		else
-			cLabel:SetText(data.name.." ("..GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA).."|t16:16:esoui/art/currency/icon_seedcrystal.dds|t)")
+			cLabel:SetText(DSST.libSets_GetSetName(data.id,DSST.lang).." (N/A |t16:16:esoui/art/currency/icon_seedcrystal.dds|t)") -- 
 		end
 	else
-		cLabel:SetText(DSST.libSets_GetSetName(data.id,DSST.lang).." (N/A |t16:16:esoui/art/currency/icon_seedcrystal.dds|t)") -- 
+		cLabel:SetText(data.name)
 	end
 	
 	-- LOOP OVER ALL EQUIPMENT TYES TO DISPLAY 
@@ -285,8 +289,12 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 		cEntry:SetAnchor(LEFT, rowControl, LEFT,(lXOffSet+(x-1)*30),0)
 		cEntry:SetDimensions(20, 20)
 		cEntry:SetHidden(false)
-		-- THIS IS WHERE THE MAGIC HAPPENS
-		lState, lQuality = DSST.checkPiece(data.id, DSST.icons[x].pieceId)
+		if data.id ~= 0 then
+			-- THIS IS WHERE THE MAGIC HAPPENS
+			lState, lQuality = DSST.checkPiece(data.id, DSST.icons[x].pieceId)
+		else
+			lState = 4
+		end
 		
 		-- ASSIGN THE TEXTURE TO THE TABLE ENTRY
 		if lState == 1 then -- THE GEAR PIECE IS AVAILABLE

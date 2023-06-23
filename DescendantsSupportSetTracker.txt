@@ -8,13 +8,12 @@
 ## Description: Tracker for Support sets Written by the Descendants of the Dwemer player
 ## DependsOn: LibAddonMenu-2.0>=32 LibSets>=00308
 ## Author: |caeba00Sven_re|r
-## APIVersion: 101036
+## APIVersion: 101037
 ## SavedVariables: DSSTSavedVariables
 
 DescendantsSupportSetTracker.lua
 DescendantsSupportSetTrackerSettings.lua
 DescendantsSupportSetTrackerList.lua
-DescendantsSupportSetTrackerRank.lua
 DescendantsSupportSetTracker.xml
 DescendantsSupportSetTrackerUI.lua
 bindings.xml

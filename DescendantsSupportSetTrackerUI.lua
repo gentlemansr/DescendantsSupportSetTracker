@@ -271,8 +271,6 @@ function DSST.showWindow()
 	DSST.checkBags()
 	if DSSTWindow:IsControlHidden() then
 		SCENE_MANAGER:SetInUIMode(true)
-	else
-		SCENE_MANAGER:SetInUIMode(false)
 	end
 	if DSST.gSetList ~= "Custom" then
 		DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
