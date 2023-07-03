@@ -3,7 +3,7 @@
 		<Control name="DSSTListTemplate" mouseEnabled="true" virtual="true">
 			<Dimensions y="30" />
 			<Controls>
-				<Label name="$(parent)Name" font="ZoFontGame" wrapMode="ELLIPSIS" >
+				<Label name="$(parent)Name" font="ZoFontGame" mouseEnabled="true" wrapMode="ELLIPSIS" >
 					<Anchor point="LEFT" />
 					<Dimensions x="450" y="30" />
 				</Label>
