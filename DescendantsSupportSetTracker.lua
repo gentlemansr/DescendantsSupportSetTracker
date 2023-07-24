@@ -263,6 +263,66 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 	local cLabel = rowControl:GetNamedChild("Name") -- GET THE CHILD OF OUR VIRTUAL CONTROL IN THE XML CALLED NAME
 	cLabel:SetFont("ZoFontWinH4")
 	cLabel:SetMaxLineCount(1) -- FORCES THE TEXT TO ONLY USE ONE ROW.  IF IT GOES LONGER, THE EXTRA WILL NOT DISPLAY.
+
+    -- CREATE TOOLTIP
+    if DSST.libSetsReady then
+        local tooltipIcon
+        if LibSets.IsTrialSet(data.id) then
+            tooltipIcon = "|t16:16:esoui/art/icons/mapkey/mapkey_raiddungeon.dds|t"
+        elseif LibSets.IsDungeonSet(data.id) or LibSets.IsMonsterSet(data.id) then
+            tooltipIcon = "|t16:16:esoui/art/icons/mapkey/mapkey_dungeon.dds|t"
+        elseif LibSets.IsCraftedSet(data.id) then
+            tooltipIcon = "|t16:16:esoui/art/icons/mapkey/mapkey_crafting.dds|t"
+        elseif LibSets.IsArenaSet(data.id) then
+            tooltipIcon = "|t16:16:esoui/art/icons/mapkey/mapkey_soloinstance.dds|t"
+        elseif LibSets.IsOverlandSet(data.id) then
+            tooltipIcon = "|t16:16:esoui/art/icons/mapkey/mapkey_delve.dds|t"
+        elseif LibSets.IsImperialCitySet(data.id) then
+            tooltipIcon = "|t16:16:esoui/art/icons/mapkey/mapkey_icsewer.dds|t"
+        elseif LibSets.IsMythicSet(data.id) then
+            tooltipIcon = "|t16:16:esoui/art/icons/mapkey/mapkey_alchemist.dds|t"
+        end
+
+        local zoneIds = LibSets.GetZoneIds(data.id)
+
+        -- Remove "area" from list of zones
+        -- Otherwise, we get, for example:
+        -- Sunpire, Northern Elsweyr, Northern Elsweyr
+        if #zoneIds > 1 then
+            local newZoneIds = {}
+            local areaId = zoneIds[#zoneIds]
+            for _, id in ipairs(zoneIds) do
+                if id ~= areaId then
+                    newZoneIds[#newZoneIds+1] = id
+                end
+            end
+
+            if #newZoneIds == 0 then
+                -- We ended up deleting all of them - restore one
+                newZoneIds[1] = areaId
+            end
+            zoneIds = newZoneIds
+        end
+
+        local tooltipText = {}
+        for i=1, #zoneIds do
+            tooltipText[#tooltipText+1] = LibSets.GetZoneName(zoneIds[i], DSST.lang)
+        end
+        if #zoneIds == 0 then
+            tooltipText[1] = "Unknown"
+        end
+
+        cLabel:SetHandler("OnMouseEnter", function(self)
+            InitializeTooltip(InformationTooltip, cLabel, RIGHT, -5, 0)
+
+            if tooltipIcon then
+                InformationTooltip:AddLine(tooltipIcon, "", ZO_TOOLTIP_DEFAULT_COLOR:UnpackRGB(), nil, nil, TEXT_ALIGN_CENTER)
+            end
+
+            InformationTooltip:AddLine(table.concat(tooltipText, "\n"), "", ZO_TOOLTIP_DEFAULT_COLOR:UnpackRGB())
+        end )
+        cLabel:SetHandler("OnMouseExit", function(self) ZO_Tooltips_HideTextTooltip() end )
+    end
 	
 	-- DISPALY THE RECONSTRUCTION COST - IF NO ITEMS ARE AVAILABLE DISPALY NA TO PREVENT AN ERROR
 	if data.id ~= 0 then
