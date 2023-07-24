@@ -1,6 +1,10 @@
 DSST = {}
 DSST.name = "DescendantsSupportSetTracker"
+<<<<<<< Updated upstream
 DSST.version = "1.0.0"
+=======
+DSST.version = "1.0.1"
+>>>>>>> Stashed changes
 DSST.variableVersion = 2
 --------------------------------------------------------------------------------
 -- LIBRARY IMPORTS
@@ -250,10 +254,78 @@ function DSST.checkPiece(iSetId, iPieceId)
 	
 	return lState, lQuality
 end
+
+--------------------------------------------------------------------------------
+-- CREATE TOOLTIP FOR THE SET NAME WITH THE DROP LOCATION
+-- BY XANDAROS
+--------------------------------------------------------------------------------
+<<<<<<< Updated upstream
+=======
+function DSST.createNameTooltip(iSetID, iLabel)
+    if DSST.libSetsReady then
+        local tooltipIcon
+        if LibSets.IsTrialSet(iSetID) then
+            tooltipIcon = "|t32:32:esoui/art/icons/mapkey/mapkey_raiddungeon.dds|t"
+        elseif LibSets.IsDungeonSet(iSetID) or LibSets.IsMonsterSet(iSetID) then
+            tooltipIcon = "|t32:32:esoui/art/icons/mapkey/mapkey_dungeon.dds|t"
+        elseif LibSets.IsCraftedSet(iSetID) then
+            tooltipIcon = "|t32:32:esoui/art/icons/mapkey/mapkey_crafting.dds|t"
+        elseif LibSets.IsArenaSet(iSetID) then
+            tooltipIcon = "|t32:32:esoui/art/icons/mapkey/mapkey_soloinstance.dds|t"
+        elseif LibSets.IsOverlandSet(iSetID) then
+            tooltipIcon = "|t32:32:esoui/art/icons/mapkey/mapkey_delve.dds|t"
+        elseif LibSets.IsImperialCitySet(iSetID) then
+            tooltipIcon = "|t32:32:esoui/art/icons/mapkey/mapkey_icsewer.dds|t"
+        elseif LibSets.IsMythicSet(iSetID) then
+            tooltipIcon = "|t32:32:esoui/art/icons/momento_antiquarianeye_01.dds|t"
+        end
+
+        local zoneIds = LibSets.GetZoneIds(iSetID)
+--------------------------------------------------------------------------------
+        -- REMOVE "AREA" FROM LIST OF ZONES
+        -- OTHERWISE, WE GET, FOR EXAMPLE:
+        -- SUNPIRE, NORTHERN ELSWEYR, NORTHERN ELSWEYR
+        if #zoneIds > 1 then
+            local newZoneIds = {}
+            local areaId = zoneIds[#zoneIds]
+            for _, id in ipairs(zoneIds) do
+                if id ~= areaId then
+                    newZoneIds[#newZoneIds+1] = id
+                end
+            end
+
+            if #newZoneIds == 0 then
+                -- We ended up deleting all of them - restore one
+                newZoneIds[1] = areaId
+            end
+            zoneIds = newZoneIds
+        end
+
+        local tooltipText = {}
+        for i=1, #zoneIds do
+            tooltipText[#tooltipText+1] = LibSets.GetZoneName(zoneIds[i], DSST.lang)
+        end
+        if #zoneIds == 0 then
+            tooltipText[1] = "Unknown"
+        end
+
+        iLabel:SetHandler("OnMouseEnter", function(self)
+            InitializeTooltip(InformationTooltip, iLabel, RIGHT, -5, 0)
+
+            if tooltipIcon then
+                InformationTooltip:AddLine(tooltipIcon, "", ZO_TOOLTIP_DEFAULT_COLOR:UnpackRGB(), nil, nil, TEXT_ALIGN_CENTER)
+            end
+
+            InformationTooltip:AddLine(table.concat(tooltipText, "\n"), "", ZO_TOOLTIP_DEFAULT_COLOR:UnpackRGB())
+        end )
+        iLabel:SetHandler("OnMouseExit", function(self) ZO_Tooltips_HideTextTooltip() end )
+    end
+end
 --------------------------------------------------------------------------------
 -- FORMAT THE SET ROWS ACCORING TO PLAN IN XML FILE
- -- LSTATE = 0 ERROR | 1 OWNED | 2 TRANSMUTE | 3 NOT OWNED | 4 N/A 
+-- LSTATE = 0 ERROR | 1 OWNED | 2 TRANSMUTE | 3 NOT OWNED | 4 N/A 
 --------------------------------------------------------------------------------
+>>>>>>> Stashed changes
 
 function DSST.LayoutRow(rowControl, data, scrollList)
 	local lXOffSet = DSST.nameWidth
@@ -264,7 +336,11 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 	local cLabel = rowControl:GetNamedChild("Name") -- GET THE CHILD OF OUR VIRTUAL CONTROL IN THE XML CALLED NAME
 	cLabel:SetFont("ZoFontWinH4")
 	cLabel:SetMaxLineCount(1) -- FORCES THE TEXT TO ONLY USE ONE ROW.  IF IT GOES LONGER, THE EXTRA WILL NOT DISPLAY.
+<<<<<<< Updated upstream
 	
+=======
+	DSST.createNameTooltip(data.id, cLabel)
+>>>>>>> Stashed changes
 	-- DISPALY THE RECONSTRUCTION COST - IF NO ITEMS ARE AVAILABLE DISPALY NA TO PREVENT AN ERROR
 	if data.id ~= 0 then
 		if GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA) then
@@ -325,14 +401,13 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 	end
 	
 end
---------------------------------------------------------------------------------
--- SLASH COMMANDS
---------------------------------------------------------------------------------
-SLASH_COMMANDS["/dsst"] = function (extra)
-	-- TOGGLE WINDOW ON COMMAND
-	DSST.showWindow()
-end
 
+--------------------------------------------------------------------------------
+<<<<<<< Updated upstream
+=======
+-- ADD INDICATORS NEXT TO ITEMS
+-- BY XANDAROS
+--------------------------------------------------------------------------------
 local function addIndicator(control)
 	local data = control.dataEntry.data
 	local bagId = data.bagId
@@ -393,6 +468,77 @@ function DSST.RegisterInventoryHooks()
 end
 
 --------------------------------------------------------------------------------
+>>>>>>> Stashed changes
+-- SLASH COMMANDS
+--------------------------------------------------------------------------------
+SLASH_COMMANDS["/dsst"] = function (extra)
+	-- TOGGLE WINDOW ON COMMAND
+	DSST.showWindow()
+end
+<<<<<<< Updated upstream
+
+local function addIndicator(control)
+	local data = control.dataEntry.data
+	local bagId = data.bagId
+	local slotIndex = data.slotIndex
+	local itemLink = bagId and GetItemLink(bagId, slotIndex) or GetItemLink(slotIndex)
+
+    local isSet, setName, setId, numBonuses, numEquipped, maxEquipped = LibSets.IsSetByItemLink(itemLink)
+
+	local indicatorControl = control:GetNamedChild("DSSTIndicator")
+	if not indicatorControl then
+        indicatorControl = WINDOW_MANAGER:CreateControl(control:GetName() .. "DSSTIndicator", control, CT_TEXTURE)
+
+        indicatorControl:ClearAnchors()
+        indicatorControl:SetAnchor(CENTER, control, CENTER, 140)
+        indicatorControl:SetDrawTier(DT_HIGH)
+
+        indicatorControl:SetTexture("/esoui/art/miscellaneous/gamepad/scrollbox_elevator.dds")
+        indicatorControl:SetDimensions(16, 16)
+	end
+
+    indicatorControl:SetHidden(true)
+    if not isSet or not DSST.markItems then
+        return
+    end
+
+    local setList
+    if DSST.gSetList ~= "Custom" then
+        setList = DSST.sets[DSST.gSetList]
+    else
+        setList = DSST.custSetList
+    end
+
+    for _, v in pairs(setList) do
+        if v.id == setId then
+            indicatorControl:SetHidden(false)
+            break
+        end
+    end
+end
+
+function DSST.RegisterInventoryHooks()
+	SecurePostHook(ZO_SmithingTopLevelDeconstructionPanelInventoryBackpack.dataTypes[1], "setupCallback", function(rowControl, slot)
+		addIndicator(rowControl)
+	end)
+
+	SecurePostHook(ZO_UniversalDeconstructionTopLevel_KeyboardPanelInventoryBackpack.dataTypes[1], "setupCallback", function(rowControl, slot)
+		addIndicator(rowControl)
+	end)
+
+	for _, v in pairs(PLAYER_INVENTORY.inventories) do
+		local listView = v.listView
+		if listView and listView.dataTypes and listView.dataTypes[1] then
+			SecurePostHook(listView.dataTypes[1], "setupCallback", function(rowControl, slot)
+				addIndicator(rowControl)
+			end)
+		end
+	end
+end
+
+=======
+>>>>>>> Stashed changes
+--------------------------------------------------------------------------------
 -- INITIALIZE ADD ON 
 --------------------------------------------------------------------------------
 function DSST:Initialize()
@@ -407,9 +553,17 @@ function DSST:Initialize()
 		self.accSavedVariables.setList = {}
 	end
 --------------------------------------------------------------------------------
--- SAVE IF 2H WEAPONS SHULD BE SHOWN
+-- SAVE IF 2H WEAPONS SHOULD BE SHOWN
 	DSST.s2h = self.savedVariables.show2h or false
 	DSST.show2H(DSST.s2h)
+	
+--------------------------------------------------------------------------------
+-- SAVE IF THE INVENTORY INDICATOR SHOULD BE SHOWN
+    if self.savedVariables.markItems == nil then
+        self.markItems = false
+    else
+        self.markItems = self.savedVariables.markItems
+    end
 
     if self.savedVariables.markItems == nil then
         self.markItems = true
