@@ -170,6 +170,17 @@ function DSST.setupSettings()
 			type = "divider",
 			width = "full",
 		},
+        {
+            type = "checkbox",
+            name = "Mark items in inventory",
+            tooltip = "Add an icon to items in your inventory if they belong to a tracked set",
+            getFunc = function() return DSST.markItems end,
+            setFunc = function(value)
+                DSST.markItems = value
+                DSST.savedVariables.markItems = value
+            end,
+            requiresReload = false,
+        },
 		{
             type = "checkbox",
             name = "Show 2h Weapons",
