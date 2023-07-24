@@ -22,6 +22,7 @@ local LEGENDARY_GOLD = ZO_ColorDef:New("ffd817")
 DSST.hidden = true
 DSST.gSetList = nil
 DSST.libSetsReady = false
+DSST.markItems = true
 DSST.s2h = false
 DSST.fullSetTable = {}
 DSST.custSetList = {}
@@ -392,6 +393,64 @@ SLASH_COMMANDS["/dsst"] = function (extra)
 	DSST.showWindow()
 end
 
+local function addIndicator(control)
+	local data = control.dataEntry.data
+	local bagId = data.bagId
+	local slotIndex = data.slotIndex
+	local itemLink = bagId and GetItemLink(bagId, slotIndex) or GetItemLink(slotIndex)
+
+    local isSet, setName, setId, numBonuses, numEquipped, maxEquipped = LibSets.IsSetByItemLink(itemLink)
+
+	local indicatorControl = control:GetNamedChild("DSSTIndicator")
+	if not indicatorControl then
+        indicatorControl = WINDOW_MANAGER:CreateControl(control:GetName() .. "DSSTIndicator", control, CT_TEXTURE)
+
+        indicatorControl:ClearAnchors()
+        indicatorControl:SetAnchor(CENTER, control, CENTER, 140)
+        indicatorControl:SetDrawTier(DT_HIGH)
+
+        indicatorControl:SetTexture("/esoui/art/miscellaneous/gamepad/scrollbox_elevator.dds")
+        indicatorControl:SetDimensions(16, 16)
+	end
+
+    indicatorControl:SetHidden(true)
+    if not isSet or not DSST.markItems then
+        return
+    end
+
+    local setList
+    if DSST.gSetList ~= "Custom" then
+        setList = DSST.sets[DSST.gSetList]
+    else
+        setList = DSST.custSetList
+    end
+
+    for _, v in pairs(setList) do
+        if v.id == setId then
+            indicatorControl:SetHidden(false)
+            break
+        end
+    end
+end
+
+function DSST.RegisterInventoryHooks()
+	SecurePostHook(ZO_SmithingTopLevelDeconstructionPanelInventoryBackpack.dataTypes[1], "setupCallback", function(rowControl, slot)
+		addIndicator(rowControl)
+	end)
+
+	SecurePostHook(ZO_UniversalDeconstructionTopLevel_KeyboardPanelInventoryBackpack.dataTypes[1], "setupCallback", function(rowControl, slot)
+		addIndicator(rowControl)
+	end)
+
+	for _, v in pairs(PLAYER_INVENTORY.inventories) do
+		local listView = v.listView
+		if listView and listView.dataTypes and listView.dataTypes[1] then
+			SecurePostHook(listView.dataTypes[1], "setupCallback", function(rowControl, slot)
+				addIndicator(rowControl)
+			end)
+		end
+	end
+end
 
 --------------------------------------------------------------------------------
 -- INITIALIZE ADD ON 
@@ -411,6 +470,12 @@ function DSST:Initialize()
 -- SAVE IF 2H WEAPONS SHULD BE SHOWN
 	DSST.s2h = self.savedVariables.show2h or false
 	DSST.show2H(DSST.s2h)
+
+    if self.savedVariables.markItems == nil then
+        self.markItems = true
+    else
+        self.markItems = self.savedVariables.markItems
+    end
 
 --------------------------------------------------------------------------------
 -- READ CUSTOM FARMING LIST FROM SAVED VAR
@@ -452,6 +517,9 @@ function DSST:Initialize()
 --------------------------------------------------------------------------------
 -- RESTORE THE SAVED POSITION OF THE WINDOW (DESCENDANTSSUPPORTSETTRACKERUI.LUA)
 	DSST:RestorePosition()
+--------------------------------------------------------------------------------
+-- SET HOOKS TO ADD INDICATORS TO ITEMS
+    DSST.RegisterInventoryHooks()
 end
 
 function DSST.OnAddOnLoaded(event, addonName)
