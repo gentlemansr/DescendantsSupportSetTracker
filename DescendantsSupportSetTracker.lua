@@ -1,10 +1,6 @@
 DSST = {}
 DSST.name = "DescendantsSupportSetTracker"
-<<<<<<< Updated upstream
-DSST.version = "1.0.0"
-=======
 DSST.version = "1.0.1"
->>>>>>> Stashed changes
 DSST.variableVersion = 2
 --------------------------------------------------------------------------------
 -- LIBRARY IMPORTS
@@ -259,8 +255,6 @@ end
 -- CREATE TOOLTIP FOR THE SET NAME WITH THE DROP LOCATION
 -- BY XANDAROS
 --------------------------------------------------------------------------------
-<<<<<<< Updated upstream
-=======
 function DSST.createNameTooltip(iSetID, iLabel)
     if DSST.libSetsReady then
         local tooltipIcon
@@ -325,7 +319,6 @@ end
 -- FORMAT THE SET ROWS ACCORING TO PLAN IN XML FILE
 -- LSTATE = 0 ERROR | 1 OWNED | 2 TRANSMUTE | 3 NOT OWNED | 4 N/A 
 --------------------------------------------------------------------------------
->>>>>>> Stashed changes
 
 function DSST.LayoutRow(rowControl, data, scrollList)
 	local lXOffSet = DSST.nameWidth
@@ -336,11 +329,7 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 	local cLabel = rowControl:GetNamedChild("Name") -- GET THE CHILD OF OUR VIRTUAL CONTROL IN THE XML CALLED NAME
 	cLabel:SetFont("ZoFontWinH4")
 	cLabel:SetMaxLineCount(1) -- FORCES THE TEXT TO ONLY USE ONE ROW.  IF IT GOES LONGER, THE EXTRA WILL NOT DISPLAY.
-<<<<<<< Updated upstream
-	
-=======
 	DSST.createNameTooltip(data.id, cLabel)
->>>>>>> Stashed changes
 	-- DISPALY THE RECONSTRUCTION COST - IF NO ITEMS ARE AVAILABLE DISPALY NA TO PREVENT AN ERROR
 	if data.id ~= 0 then
 		if GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA) then
@@ -403,8 +392,6 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 end
 
 --------------------------------------------------------------------------------
-<<<<<<< Updated upstream
-=======
 -- ADD INDICATORS NEXT TO ITEMS
 -- BY XANDAROS
 --------------------------------------------------------------------------------
@@ -468,14 +455,12 @@ function DSST.RegisterInventoryHooks()
 end
 
 --------------------------------------------------------------------------------
->>>>>>> Stashed changes
 -- SLASH COMMANDS
 --------------------------------------------------------------------------------
 SLASH_COMMANDS["/dsst"] = function (extra)
 	-- TOGGLE WINDOW ON COMMAND
 	DSST.showWindow()
 end
-<<<<<<< Updated upstream
 
 local function addIndicator(control)
 	local data = control.dataEntry.data
@@ -536,8 +521,6 @@ function DSST.RegisterInventoryHooks()
 	end
 end
 
-=======
->>>>>>> Stashed changes
 --------------------------------------------------------------------------------
 -- INITIALIZE ADD ON 
 --------------------------------------------------------------------------------
