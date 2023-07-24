@@ -1,10 +1,6 @@
 DSST = {}
 DSST.name = "DescendantsSupportSetTracker"
-<<<<<<< Updated upstream
 DSST.version = "1.0.0"
-=======
-DSST.version = "1.0.1"
->>>>>>> Stashed changes
 DSST.variableVersion = 2
 --------------------------------------------------------------------------------
 -- LIBRARY IMPORTS
@@ -259,8 +255,6 @@ end
 -- CREATE TOOLTIP FOR THE SET NAME WITH THE DROP LOCATION
 -- BY XANDAROS
 --------------------------------------------------------------------------------
-<<<<<<< Updated upstream
-=======
 function DSST.createNameTooltip(iSetID, iLabel)
     if DSST.libSetsReady then
         local tooltipIcon
@@ -325,7 +319,6 @@ end
 -- FORMAT THE SET ROWS ACCORING TO PLAN IN XML FILE
 -- LSTATE = 0 ERROR | 1 OWNED | 2 TRANSMUTE | 3 NOT OWNED | 4 N/A 
 --------------------------------------------------------------------------------
->>>>>>> Stashed changes
 
 function DSST.LayoutRow(rowControl, data, scrollList)
 	local lXOffSet = DSST.nameWidth
@@ -336,11 +329,7 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 	local cLabel = rowControl:GetNamedChild("Name") -- GET THE CHILD OF OUR VIRTUAL CONTROL IN THE XML CALLED NAME
 	cLabel:SetFont("ZoFontWinH4")
 	cLabel:SetMaxLineCount(1) -- FORCES THE TEXT TO ONLY USE ONE ROW.  IF IT GOES LONGER, THE EXTRA WILL NOT DISPLAY.
-<<<<<<< Updated upstream
-	
-=======
 	DSST.createNameTooltip(data.id, cLabel)
->>>>>>> Stashed changes
 	-- DISPALY THE RECONSTRUCTION COST - IF NO ITEMS ARE AVAILABLE DISPALY NA TO PREVENT AN ERROR
 	if data.id ~= 0 then
 		if GetItemReconstructionCurrencyOptionCost(data.id, CURT_CHAOTIC_CREATIA) then
@@ -403,8 +392,6 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 end
 
 --------------------------------------------------------------------------------
-<<<<<<< Updated upstream
-=======
 -- ADD INDICATORS NEXT TO ITEMS
 -- BY XANDAROS
 --------------------------------------------------------------------------------
@@ -468,76 +455,12 @@ function DSST.RegisterInventoryHooks()
 end
 
 --------------------------------------------------------------------------------
->>>>>>> Stashed changes
 -- SLASH COMMANDS
 --------------------------------------------------------------------------------
 SLASH_COMMANDS["/dsst"] = function (extra)
 	-- TOGGLE WINDOW ON COMMAND
 	DSST.showWindow()
 end
-<<<<<<< Updated upstream
-
-local function addIndicator(control)
-	local data = control.dataEntry.data
-	local bagId = data.bagId
-	local slotIndex = data.slotIndex
-	local itemLink = bagId and GetItemLink(bagId, slotIndex) or GetItemLink(slotIndex)
-
-    local isSet, setName, setId, numBonuses, numEquipped, maxEquipped = LibSets.IsSetByItemLink(itemLink)
-
-	local indicatorControl = control:GetNamedChild("DSSTIndicator")
-	if not indicatorControl then
-        indicatorControl = WINDOW_MANAGER:CreateControl(control:GetName() .. "DSSTIndicator", control, CT_TEXTURE)
-
-        indicatorControl:ClearAnchors()
-        indicatorControl:SetAnchor(CENTER, control, CENTER, 140)
-        indicatorControl:SetDrawTier(DT_HIGH)
-
-        indicatorControl:SetTexture("/esoui/art/miscellaneous/gamepad/scrollbox_elevator.dds")
-        indicatorControl:SetDimensions(16, 16)
-	end
-
-    indicatorControl:SetHidden(true)
-    if not isSet or not DSST.markItems then
-        return
-    end
-
-    local setList
-    if DSST.gSetList ~= "Custom" then
-        setList = DSST.sets[DSST.gSetList]
-    else
-        setList = DSST.custSetList
-    end
-
-    for _, v in pairs(setList) do
-        if v.id == setId then
-            indicatorControl:SetHidden(false)
-            break
-        end
-    end
-end
-
-function DSST.RegisterInventoryHooks()
-	SecurePostHook(ZO_SmithingTopLevelDeconstructionPanelInventoryBackpack.dataTypes[1], "setupCallback", function(rowControl, slot)
-		addIndicator(rowControl)
-	end)
-
-	SecurePostHook(ZO_UniversalDeconstructionTopLevel_KeyboardPanelInventoryBackpack.dataTypes[1], "setupCallback", function(rowControl, slot)
-		addIndicator(rowControl)
-	end)
-
-	for _, v in pairs(PLAYER_INVENTORY.inventories) do
-		local listView = v.listView
-		if listView and listView.dataTypes and listView.dataTypes[1] then
-			SecurePostHook(listView.dataTypes[1], "setupCallback", function(rowControl, slot)
-				addIndicator(rowControl)
-			end)
-		end
-	end
-end
-
-=======
->>>>>>> Stashed changes
 --------------------------------------------------------------------------------
 -- INITIALIZE ADD ON 
 --------------------------------------------------------------------------------
@@ -561,12 +484,6 @@ function DSST:Initialize()
 -- SAVE IF THE INVENTORY INDICATOR SHOULD BE SHOWN
     if self.savedVariables.markItems == nil then
         self.markItems = false
-    else
-        self.markItems = self.savedVariables.markItems
-    end
-
-    if self.savedVariables.markItems == nil then
-        self.markItems = true
     else
         self.markItems = self.savedVariables.markItems
     end
