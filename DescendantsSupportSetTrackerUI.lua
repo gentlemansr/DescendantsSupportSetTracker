@@ -152,7 +152,7 @@ function DSST.generateHeadder()
 	cCloseButton:SetHandler("OnMouseEnter", function(self) ZO_Tooltips_ShowTextTooltip(cCloseButton, LEFT, "Close") end )
 	cCloseButton:SetHandler("OnMouseExit", function(self) ZO_Tooltips_HideTextTooltip() end )
 	
-	-- GENERATE UPDATE BUTTON IN THE TOP RIGHT
+	-- GENERATE FORCE UPDATE BUTTON IN THE TOP RIGHT
 	local cUpdateButton = DSSTWindow:GetNamedChild("UpdateButton")
     if not cUpdateButton then
 		cUpdateButton = WINDOW_MANAGER:CreateControl("$(parent)UpdateButton", DSSTWindow, CT_BUTTON)
@@ -208,12 +208,15 @@ function DSST.generateHeadder()
 			-- IF NOT FIRST RUN THROUGH SHOW SLOT ICONS
 			local cIcon = DSSTWindow:GetNamedChild("Piece"..y)
 			if not cIcon then
-				cIcon = CreateControl("$(parent)Piece"..y, DSSTWindow, CT_BUTTON)
+				cIcon = WINDOW_MANAGER:CreateControl("$(parent)Piece"..y, DSSTWindow, CT_TEXTURE)
 			end
+			cIcon:SetMouseEnabled(true)
+			cIcon:SetDrawTier(DL_CONTROLS)
 			cIcon:SetDimensions(30, 30)
-			cIcon:SetNormalTexture(DSST.icons[y].link)
+			cIcon:SetTexture(DSST.icons[y].link)-- cIcon:SetNormalTexture(DSST.icons[y].link) -- 
 			cIcon:SetAnchor(TOPLEFT, DSSTWindow, TOPLEFT, xOffSet, yOffset)
-			cIcon:SetNormalFontColor(255/255,216/255,23/255,1)
+			cIcon:SetColor(252/255,252/255,252/255,1)
+	
 			cIcon:SetHandler("OnMouseEnter", function(self) ZO_Tooltips_ShowTextTooltip(cIcon, LEFT, DSST.icons[y].name) end )
 			cIcon:SetHandler("OnMouseExit", function(self) ZO_Tooltips_HideTextTooltip() end )
 			xOffSet = xOffSet+30

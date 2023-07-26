@@ -1,5 +1,5 @@
 <GuiXml>
-  <Controls>
+	<Controls>
 		<Control name="DSSTListTemplate" mouseEnabled="true" virtual="true">
 			<Dimensions y="30" />
 			<Controls>
@@ -9,5 +9,5 @@
 				</Label>
 			</Controls>
 		</Control>
-  </Controls>
+	</Controls>
 </GuiXml>

@@ -1,6 +1,6 @@
 DSST = {}
 DSST.name = "DescendantsSupportSetTracker"
-DSST.version = "1.0.1"
+DSST.version = "1.0.2"
 DSST.variableVersion = 2
 --------------------------------------------------------------------------------
 -- LIBRARY IMPORTS
@@ -17,20 +17,40 @@ local SUPERIOR_BLUE = ZO_ColorDef:New("303af0")
 local EPIC_PURPLE = ZO_ColorDef:New("880ba1")
 local LEGENDARY_GOLD = ZO_ColorDef:New("ffd817")
 --------------------------------------------------------------------------------
--- GLOBAL VARIABLES
+-- SAVED VARIABLES
 --------------------------------------------------------------------------------
 DSST.hidden = true
 DSST.gSetList = nil
 DSST.libSetsReady = false
-DSST.markItems = true
+DSST.markItems = false
 DSST.s2h = false
+DSST.showTransmute = true
+DSST.lang = ""
+DSST.Storages = {
+	[BAG_BACKPACK] = {icon="/esoui/art/tutorial/tutorial_illo_status_online.dds", name = "Bag Pack"},
+	[BAG_WORN] = {icon="/esoui/art/tutorial/menubar_inventory_up.dds", name="Equipped"},
+	[BAG_BANK] = {icon="/esoui/art/icons/servicemappins/servicepin_bank.dds", name="Bank"},
+	[BAG_SUBSCRIBER_BANK] = {icon="/esoui/art/icons/servicemappins/servicepin_bank.dds", name="Bank"},
+	[BAG_HOUSE_BANK_TEN] = {icon="/esoui/art/collections/primaryhouse.dds", 	name= GetCollectibleNickname(GetCollectibleForHouseBankBag(BAG_HOUSE_BANK_TEN))},
+	[BAG_HOUSE_BANK_NINE] = {icon="/esoui/art/collections/primaryhouse.dds", 	name= GetCollectibleNickname(GetCollectibleForHouseBankBag(BAG_HOUSE_BANK_NINE))},
+	[BAG_HOUSE_BANK_EIGHT]= {icon="/esoui/art/collections/primaryhouse.dds", 	name= GetCollectibleNickname(GetCollectibleForHouseBankBag(BAG_HOUSE_BANK_EIGHT))},
+	[BAG_HOUSE_BANK_SEVEN]= {icon="/esoui/art/collections/primaryhouse.dds", 	name= GetCollectibleNickname(GetCollectibleForHouseBankBag(BAG_HOUSE_BANK_SEVEN))},
+	[BAG_HOUSE_BANK_SIX]= {icon="/esoui/art/collections/primaryhouse.dds", 		name= GetCollectibleNickname(GetCollectibleForHouseBankBag(BAG_HOUSE_BANK_SIX))},
+	[BAG_HOUSE_BANK_FIVE]= {icon="/esoui/art/collections/primaryhouse.dds", 	name= GetCollectibleNickname(GetCollectibleForHouseBankBag(BAG_HOUSE_BANK_FIVE))},
+	[BAG_HOUSE_BANK_FOUR]= {icon="/esoui/art/collections/primaryhouse.dds", 	name= GetCollectibleNickname(GetCollectibleForHouseBankBag(BAG_HOUSE_BANK_FOUR))},
+	[BAG_HOUSE_BANK_THREE]= {icon="/esoui/art/collections/primaryhouse.dds", 	name= GetCollectibleNickname(GetCollectibleForHouseBankBag(BAG_HOUSE_BANK_THREE))},
+	[BAG_HOUSE_BANK_TWO]= {icon="/esoui/art/collections/primaryhouse.dds", 		name= GetCollectibleNickname(GetCollectibleForHouseBankBag(BAG_HOUSE_BANK_TWO))},
+	[BAG_HOUSE_BANK_ONE]= {icon="/esoui/art/collections/primaryhouse.dds", 		name= GetCollectibleNickname(GetCollectibleForHouseBankBag(BAG_HOUSE_BANK_ONE))},
+}
+--------------------------------------------------------------------------------
+-- GLOBAL VARIABLES
+--------------------------------------------------------------------------------
 DSST.fullSetTable = {}
 DSST.custSetList = {}
 DSST.nameWidth = 450
 DSST.collumns = 18
 DSST.width = 450+32*DSST.collumns
-DSST.showTransmute = true
-DSST.lang = ""
+
 --------------------------------------------------------------------------------
 -- LOCAL VARIABLES
 --------------------------------------------------------------------------------
@@ -40,28 +60,28 @@ DSST.lang = ""
 --------------------------------------------------------------------------------
 
 DSST.icons = {
-	{pieceId=1 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_head.dds", name="Head"},
-	{pieceId=2 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_shoulders.dds", name="Shoulder"},
-	{pieceId=3 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_chest.dds", name="Chest"},
-	{pieceId=4 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_hands.dds", name="Hand"},
-	{pieceId=5 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_waist.dds", name="Waist"},
-	{pieceId=6 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_legs.dds", name="Legs"},
-	{pieceId=7 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_feet.dds", name="Feet"},
-	{pieceId=8 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_neck.dds", name="Necklace"},
-	{pieceId=9 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_ring.dds", name="Ring"},
-	{pieceId=10 ,link="esoui/art/icons/gear_breton_dagger_d.dds", name="Dagger"},
-	{pieceId=11 ,link="esoui/art/icons/gear_breton_1haxe_d.dds", name="Axe"},
-	{pieceId=12 ,link="esoui/art/icons/gear_breton_1hhammer_d.dds", name="Hammer"},
-	{pieceId=13 ,link="esoui/art/icons/gear_breton_1hsword_d.dds", name="Sword"},
-	{pieceId=22 ,link="esoui/art/tutorial/gamepad/gp_tooltip_itemslot_offhand.dds", name="Shield"},
-	{pieceId=19 ,link="esoui/art/icons/icon_firestaff.dds", name="Fire"},
-	{pieceId=21 ,link="esoui/art/icons/icon_lightningstaff.dds", name="Lightning"},
-	{pieceId=20 ,link="esoui/art/icons/icon_icestaff.dds", name="Ice"},
-	{pieceId=18 ,link="esoui/art/progression/icon_healstaff.dds", name="Restoration"},
-	{pieceId=16 ,link="esoui/art/icons/gear_breton_2hsword_d.dds", name="2hSword"},
-	{pieceId=14 ,link="esoui/art/icons/gear_breton_2haxe_d.dds", name="2hAxe"},
-	{pieceId=15 ,link="esoui/art/icons/gear_breton_2hhammer_d.dds", name="2hHammer"},
-	{pieceId=17 ,link="esoui/art/icons/gear_breton_bow_d.dds", name="Bow"},	
+	{pieceId=1 ,link="esoui/art/tradinghouse/tradinghouse_apparel_head_down.dds", name="Head"},
+	{pieceId=2 ,link="esoui/art/tradinghouse/tradinghouse_apparel_shoulders_down.dds", name="Shoulder"},
+	{pieceId=3 ,link="esoui/art/tradinghouse/tradinghouse_apparel_chest_down.dds", name="Chest"},
+	{pieceId=4 ,link="esoui/art/tradinghouse/tradinghouse_apparel_hands_down.dds", name="Hand"},
+	{pieceId=5 ,link="esoui/art/tradinghouse/tradinghouse_apparel_waist_down.dds", name="Waist"},
+	{pieceId=6 ,link="esoui/art/tradinghouse/tradinghouse_apparel_legs_down.dds", name="Legs"},
+	{pieceId=7 ,link="esoui/art/tradinghouse/tradinghouse_apparel_feet_down.dds", name="Feet"},
+	{pieceId=8 ,link="esoui/art/tradinghouse/tradinghouse_apparel_accessories_necklace_down.dds", name="Necklace"},
+	{pieceId=9 ,link="esoui/art/tradinghouse/tradinghouse_apparel_accessories_ring_down.dds", name="Ring"},
+	{pieceId=10 ,link="esoui/art/tradinghouse/tradinghouse_weapons_1h_dagger_down.dds", name="Dagger"},
+	{pieceId=11 ,link="esoui/art/tradinghouse/tradinghouse_weapons_1h_axe_down.dds", name="Axe"},
+	{pieceId=12 ,link="esoui/art/tradinghouse/tradinghouse_weapons_1h_mace_down.dds", name="Mace"},
+	{pieceId=13 ,link="esoui/art/tradinghouse/tradinghouse_weapons_1h_sword_down.dds", name="Sword"},
+	{pieceId=22 ,link="esoui/art/inventory/inventory_tabicon_shield_down.dds", name="Shield"},
+	{pieceId=19 ,link="esoui/art/tradinghouse/tradinghouse_weapons_staff_flame_down.dds", name="Fire Staff"},
+	{pieceId=21 ,link="esoui/art/tradinghouse/tradinghouse_weapons_staff_lightning_down.dds", name="Lightning Staff"},
+	{pieceId=20 ,link="esoui/art/tradinghouse/tradinghouse_weapons_staff_frost_down.dds", name="Ice Staff"},
+	{pieceId=18 ,link="esoui/art/inventory/inventory_tabicon_healstaff_down.dds", name="Restoration Staff"},
+	{pieceId=16 ,link="esoui/art/tradinghouse/tradinghouse_weapons_2h_sword_down.dds", name="2h Sword"},
+	{pieceId=14 ,link="esoui/art/tradinghouse/tradinghouse_weapons_2h_axe_down.dds", name="2h Axe"},
+	{pieceId=15 ,link="esoui/art/tradinghouse/tradinghouse_weapons_2h_hammer_down.dds", name="2h Maul"},
+	{pieceId=17 ,link="esoui/art/inventory/inventory_tabicon_bow_down.dds", name="Bow"},	
 
 }
 
@@ -172,6 +192,7 @@ function DSST.checkBags()
 	DSST.getItems(BAG_BANK)
 	DSST.getItems(BAG_SUBSCRIBER_BANK)
 	DSST.getItems(BAG_WORN)
+	--------------------------------------------------------------------------------
 	 -- ONLY CHECKS HOUSE BANKS WHEN YOU ARE IN ONE OF YOUR HOUSES
 	if GetUnitDisplayName('player') == GetCurrentHouseOwner() then
 		DSST.getItems(BAG_HOUSE_BANK_TEN)
@@ -239,16 +260,18 @@ end
 --------------------------------------------------------------------------------
 function DSST.checkPiece(iSetId, iPieceId)
 	local lState = DSST.isUnlocked(iSetId, iPieceId)
+	local lStorage = ""
 	local lQuality = 0
 
 	if lState ~= 4 then
 		if DSST.isReconstructed(iSetId,iPieceId) then
 			lState = 1
 			lQuality = DSST.accSavedVariables.setList[iSetId][iPieceId]["quality"] 
+			lStorage = DSST.accSavedVariables.setList[iSetId][iPieceId]["storage"] 
 		end
 	end
 	
-	return lState, lQuality
+	return lState, lQuality, lStorage
 end
 
 --------------------------------------------------------------------------------
@@ -256,7 +279,7 @@ end
 -- BY XANDAROS
 --------------------------------------------------------------------------------
 function DSST.createNameTooltip(iSetID, iLabel)
-    if DSST.libSetsReady then
+    if DSST.libSetsReady and iSetID ~= 0 then
         local tooltipIcon
         if LibSets.IsTrialSet(iSetID) then
             tooltipIcon = "|t32:32:esoui/art/icons/mapkey/mapkey_raiddungeon.dds|t"
@@ -275,10 +298,10 @@ function DSST.createNameTooltip(iSetID, iLabel)
         end
 
         local zoneIds = LibSets.GetZoneIds(iSetID)
---------------------------------------------------------------------------------
-        -- REMOVE "AREA" FROM LIST OF ZONES
-        -- OTHERWISE, WE GET, FOR EXAMPLE:
-        -- SUNPIRE, NORTHERN ELSWEYR, NORTHERN ELSWEYR
+	--------------------------------------------------------------------------------
+	-- REMOVE "AREA" FROM LIST OF ZONES
+	-- OTHERWISE, WE GET, FOR EXAMPLE:
+	-- SUNPIRE, NORTHERN ELSWEYR, NORTHERN ELSWEYR
         if #zoneIds > 1 then
             local newZoneIds = {}
             local areaId = zoneIds[#zoneIds]
@@ -315,6 +338,28 @@ function DSST.createNameTooltip(iSetID, iLabel)
         iLabel:SetHandler("OnMouseExit", function(self) ZO_Tooltips_HideTextTooltip() end )
     end
 end
+
+--------------------------------------------------------------------------------
+-- GENERATE THE STORAGE TOOLTIP TEXT
+-- RETURNS: RET INCLUDING THE TEXT FOR THE STIORAGE TROOL TIUP ICLUDING THGE ICONS 
+-- FROM DSST.STORAGES TABLE
+--------------------------------------------------------------------------------
+local function storageTooltipText(iStorage)
+	local lStorageName = DSST.Storages[iStorage].name or ""
+	local lIcon = DSST.Storages[iStorage].icon or ""
+	local ret = ""
+	
+	if iStorage == GetCurrentCharacterId() then
+		lIcon = "/esoui/art/tutorial/tutorial_illo_status_online.dds"
+	end
+	
+	if lStorageName ~= "" then
+		ret = "|t32:32:"..lIcon.."|t".." "..lStorageName
+	else
+		ret = "Unknown"
+	end
+	return ret
+end
 --------------------------------------------------------------------------------
 -- FORMAT THE SET ROWS ACCORING TO PLAN IN XML FILE
 -- LSTATE = 0 ERROR | 1 OWNED | 2 TRANSMUTE | 3 NOT OWNED | 4 N/A 
@@ -324,6 +369,7 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 	local lXOffSet = DSST.nameWidth
 	local lState = 0
 	local lQuality = 0
+	
 	rankPieces = 0
 	-- THE ROWCONTROL, DATA, AND SCROLLLISTCONTROL ARE ALL SUPPLIED BY THE INTERNAL CALLBACK TRIGGER
 	local cLabel = rowControl:GetNamedChild("Name") -- GET THE CHILD OF OUR VIRTUAL CONTROL IN THE XML CALLED NAME
@@ -344,24 +390,27 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 	else
 		cLabel:SetText(data.name)
 	end
-	
+	--------------------------------------------------------------------------------
 	-- LOOP OVER ALL EQUIPMENT TYES TO DISPLAY 
 	for x = 1, DSST.collumns do
+		local lStorage = ""
+		--------------------------------------------------------------------------------
 		-- IF THERE IS ALREADY A BOX SELECT IT TO PREVENT ERRORS OTEHRWISE CREATE A NEW ONE 
 	    local cEntry = rowControl:GetNamedChild("Entry"..x)
     	if not cEntry then
-	    	cEntry = WINDOW_MANAGER:CreateControl("$(parent)Entry"..x, rowControl, CT_TEXTURE)
+	    	cEntry = CreateControl("$(parent)Entry"..x, rowControl, CT_TEXTURE)
 	    end
 		cEntry:SetAnchor(LEFT, rowControl, LEFT,(lXOffSet+(x-1)*30),0)
 		cEntry:SetDimensions(20, 20)
 		cEntry:SetHidden(false)
 		if data.id ~= 0 then
+			--------------------------------------------------------------------------------
 			-- THIS IS WHERE THE MAGIC HAPPENS
-			lState, lQuality = DSST.checkPiece(data.id, DSST.icons[x].pieceId)
+			lState, lQuality, lStorage = DSST.checkPiece(data.id, DSST.icons[x].pieceId)
 		else
 			lState = 4
 		end
-		
+		--------------------------------------------------------------------------------
 		-- ASSIGN THE TEXTURE TO THE TABLE ENTRY
 		if lState == 1 then -- THE GEAR PIECE IS AVAILABLE
 			cEntry:SetTexture("/esoui/art/cadwell/check.dds")
@@ -376,6 +425,13 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 			else if lQuality == 5 then
 				cEntry:SetColor(LEGENDARY_GOLD:UnpackRGBA())
 			end end end end end 
+			--------------------------------------------------------------------------------
+			-- ADD TOOLTIP FOR THE STORAGE THE ITEM IS IN
+			cEntry:SetMouseEnabled(true)
+			cEntry:SetDrawTier(DL_CONTROLS)
+			cEntry:SetHandler("OnMouseEnter", function(self) ZO_Tooltips_ShowTextTooltip(cEntry, LEFT, storageTooltipText(lStorage)) end )
+			cEntry:SetHandler("OnMouseExit", function(self) ZO_Tooltips_HideTextTooltip() end )
+			--------------------------------------------------------------------------------
 		else if lState == 2 and DSST.showTransmute == true then -- THE GEAR PIECE IS RECONSTRUCTABLE
 			cEntry:SetTexture("esoui/art/currency/icon_seedcrystal.dds")
 			cEntry:SetColor(1, 1, 1)
@@ -386,7 +442,7 @@ function DSST.LayoutRow(rowControl, data, scrollList)
 			cEntry:SetHidden(true) 
 		else
 			d("Descendants Support Set Tracker ran into an issue. Please reload UI and Try again. If that doesnt Fix the issue Please comment on ESOUI with E"..data.id.."-"..x.." as error number")
-		end end end end-- ends elifs
+		end end end end-- ENDS ELIFS
 	end
 	
 end
@@ -411,7 +467,7 @@ local function addIndicator(control)
         indicatorControl:SetAnchor(CENTER, control, CENTER, 140)
         indicatorControl:SetDrawTier(DT_HIGH)
 
-        indicatorControl:SetTexture("/esoui/art/miscellaneous/gamepad/scrollbox_elevator.dds")
+        indicatorControl:SetTexture("/esoui/art/miscellaneous/gamepad/scrollbox_elevator.dds") 
         indicatorControl:SetDimensions(16, 16)
 	end
 
@@ -488,35 +544,44 @@ function DSST:Initialize()
         self.markItems = self.savedVariables.markItems
     end
 
---------------------------------------------------------------------------------
--- READ CUSTOM FARMING LIST FROM SAVED VAR
+	--------------------------------------------------------------------------------
+	-- READ CUSTOM FARMING LIST FROM SAVED VAR
 	DSST.custSetList = DSST.accSavedVariables.customSetList or {}
---------------------------------------------------------------------------------
--- READ SET LIST FROM SAVED VARIABLE
+	--------------------------------------------------------------------------------
+	-- READ SET LIST FROM SAVED VARIABLE
 	DSST.gSetList = self.savedVariables.setList or 'Default_Tank'
---------------------------------------------------------------------------------
--- DELETE SAVED GEAR FOR CURRENT CHAR AND CHECK BAGS FOR UNSAVED ITEMS
+	--------------------------------------------------------------------------------
+	-- DELETE SAVED GEAR FOR CURRENT CHAR AND CHECK BAGS FOR UNSAVED ITEMS
 	DSST.delCurrCharGear(GetCurrentCharacterId())
 	DSST.checkBags()
---------------------------------------------------------------------------------
--- GENERATE THE WINDOW AND THE EMPTY SCROLLABLE LIST (DESCENDANTSSUPPORTSETTRACKERUI.LUA)
+	--------------------------------------------------------------------------------
+	-- GENERATE THE WINDOW AND THE EMPTY SCROLLABLE LIST (DESCENDANTSSUPPORTSETTRACKERUI.LUA)
 	DSST.CreateMainWindowControl() 	
 	DSST.CreateScrollListControl() 
 	DSST.CreateScrollListDataType() 
---------------------------------------------------------------------------------
--- GENERATE THE ADDON SETTINGS WITH LIBADDONMENU (DESCENDANTSSUPPORTSETTRACKERSETTINGS.LUA)
+	--------------------------------------------------------------------------------
+	-- GENERATE THE ADDON SETTINGS WITH LIBADDONMENU (DESCENDANTSSUPPORTSETTRACKERSETTINGS.LUA)
 	DSST.setupSettings()
---------------------------------------------------------------------------------
--- CHECK IF LIB SETS LOADED PROPPERLY
+	--------------------------------------------------------------------------------
+	-- CHECK IF LIB SETS LOADED PROPPERLY
 	DSST.lsLoaded()
---------------------------------------------------------------------------------
--- SAVE THE CURRENT CLIENT LANGUAGE OR SAVED VARIABLE
+	--------------------------------------------------------------------------------
+	-- SAVE THE CURRENT CLIENT LANGUAGE OR SAVED VARIABLE
 	DSST.lang = self.savedVariables.lang or LibSets.clientLang
---------------------------------------------------------------------------------
--- SAVE ALL NON CRAFTABLE SETS INTO A TABLE FOR THE SETTINGS MENU (DESCENDANTSSUPPORTSETTRACKERSETTINGS.LUA)
+	--------------------------------------------------------------------------------
+	-- SAVE ALL NON CRAFTABLE SETS INTO A TABLE FOR THE SETTINGS MENU (DESCENDANTSSUPPORTSETTRACKERSETTINGS.LUA)
 	DSST.saveSetTable()
---------------------------------------------------------------------------------
--- ADD HANDLERS FOR RESIZE AND MOVE TO THE MAIN WINDOW
+	--------------------------------------------------------------------------------
+	-- SAVE CHARACTER NAMES INTO THE STORAGES TABLE
+	-- ORIGINAL CODE TAKEN FROM INVENTORY INSIGHT AND ADJUSTED TO MY NEEDS
+	for i = 1, GetNumCharacters() do
+		local lCharName, _, _, _, _, _, lCharId, _ = GetCharacterInfo(i)
+		lCharName = lCharName:sub(1, lCharName:find("%^") - 1)
+		table.insert(DSST.Storages, lCharId)
+		DSST.Storages[lCharId] = {icon="/esoui/art/tutorial/tutorial_illo_status_offline.dds", name= lCharName }
+	end
+	--------------------------------------------------------------------------------
+	-- ADD HANDLERS FOR RESIZE AND MOVE TO THE MAIN WINDOW
 	DSST.cMainWindow:SetHandler("OnResizeStop", function(self)
 		if DSST.gSetList ~= "Custom" then
 			DSST.UpdateScrollList(DSST.cScrollList, DSST.sets[DSST.gSetList], 1) 
@@ -525,11 +590,11 @@ function DSST:Initialize()
 		end	
 	end) 
 	DSST.cMainWindow:SetHandler("OnMoveStop", function(self) DSST.OnIndicatorMoveStop()  end) 
---------------------------------------------------------------------------------
--- RESTORE THE SAVED POSITION OF THE WINDOW (DESCENDANTSSUPPORTSETTRACKERUI.LUA)
+	--------------------------------------------------------------------------------
+	-- RESTORE THE SAVED POSITION OF THE WINDOW (DESCENDANTSSUPPORTSETTRACKERUI.LUA)
 	DSST:RestorePosition()
---------------------------------------------------------------------------------
--- SET HOOKS TO ADD INDICATORS TO ITEMS
+	--------------------------------------------------------------------------------
+	-- SET HOOKS TO ADD INDICATORS TO ITEMS
     DSST.RegisterInventoryHooks()
 end
 
@@ -539,8 +604,11 @@ function DSST.OnAddOnLoaded(event, addonName)
     DSST:Initialize()
   end
 end
- --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- CREATE MENU ENTRY FOR THE KEYBIND (BINDINGS.XML)
+--------------------------------------------------------------------------------
 	ZO_CreateStringId("SI_BINDING_NAME_DSST_TOGGLE",  "Show/Hide UI")
- --------------------------------------------------------------------------------
+	--------------------------------------------------------------------------------
+-- REGISTER ADDON FOR THE LAOD EVENT OF THE GAME
+--------------------------------------------------------------------------------
 EVENT_MANAGER:RegisterForEvent(DSST.name, EVENT_ADD_ON_LOADED, DSST.OnAddOnLoaded)

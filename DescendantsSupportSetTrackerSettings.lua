@@ -183,7 +183,6 @@ function DSST.setupSettings()
             type = "checkbox",
             name = "Mark items in inventory",
             tooltip = "Add an icon to items in your inventory if they belong to a tracked set (Character Setting)",
-			default = false,
             getFunc = function() return DSST.markItems end,
             setFunc = function(value)
                 DSST.markItems = value
