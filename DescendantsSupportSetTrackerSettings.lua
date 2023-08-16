@@ -191,6 +191,18 @@ function DSST.setupSettings()
             end,
             requiresReload = false,
         },
+        {
+            type = "checkbox",
+            name = "Display notification",
+            tooltip = "Display a notification when you enter a zone where a tracked set can be found",
+			default = false,
+            getFunc = function() return DSST.displayNotification end,
+            setFunc = function(value)
+                DSST.displayNotification = value
+                DSST.savedVariables.displayNotification = value
+            end,
+            requiresReload = false,
+        },
 		{
             type = "checkbox",
             name = "Show 2h Weapons",

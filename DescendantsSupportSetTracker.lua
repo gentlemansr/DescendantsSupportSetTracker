@@ -22,7 +22,8 @@ local LEGENDARY_GOLD = ZO_ColorDef:New("ffd817")
 DSST.hidden = true
 DSST.gSetList = nil
 DSST.libSetsReady = false
-DSST.markItems = true
+DSST.markItems = false
+DSST.showNotifications = false
 DSST.s2h = false
 DSST.fullSetTable = {}
 DSST.custSetList = {}
@@ -251,6 +252,130 @@ function DSST.checkPiece(iSetId, iPieceId)
 	return lState, lQuality
 end
 
+
+--------------------------------------------------------------------------------
+-- GET ZONE IDS FOR A GIVEN  SET
+-- BY XANDAROS
+--------------------------------------------------------------------------------
+local function getSetZoneIds(iSetID)
+    local zoneIds = LibSets.GetZoneIds(iSetID)
+    -- REMOVE "AREA" FROM LIST OF ZONES
+    -- OTHERWISE, WE GET, FOR EXAMPLE:
+    -- SUNPIRE, NORTHERN ELSWEYR, NORTHERN ELSWEYR
+    if #zoneIds > 1 then
+        local newZoneIds = {}
+        local areaId = zoneIds[#zoneIds]
+        for _, id in ipairs(zoneIds) do
+            if id ~= areaId then
+                newZoneIds[#newZoneIds+1] = id
+            end
+        end
+
+        if #newZoneIds == 0 then
+            -- We ended up deleting all of them - restore one
+            newZoneIds[1] = areaId
+        end
+        zoneIds = newZoneIds
+    end
+
+    return zoneIds
+end
+
+local function showAnnouncement(message)
+    local params = CENTER_SCREEN_ANNOUNCE:CreateMessageParams(CSA_CATEGORY_LARGE_TEXT, SOUNDS.ACHIEVEMENT_AWARDED)
+    params:SetText(message)
+    CENTER_SCREEN_ANNOUNCE:AddMessageWithParams(params)
+end
+
+local onZoneChanged
+do
+    local previousSets = {}
+    onZoneChanged = function()
+        if not DSST.displayNotification then return end
+        local currentZoneIds = {LibZone:GetCurrentZoneIds()}
+
+        -- Check if we are in an instance
+        local inInstance = false
+        do
+            local _, _, _, groupdun, trial, _, _ = LibZone:GetCurrentZoneAndGroupStatus()
+            inInstance = groupdun or trial
+        end
+
+        local setList
+        if DSST.gSetList ~= "Custom" then
+            setList = DSST.sets[DSST.gSetList]
+        else
+            setList = DSST.custSetList
+        end
+
+        -- Sets that can be found here
+        local localSets = {}
+
+        for _, v in pairs(setList) do
+            local setId = v.id
+            local setName = v.name
+
+            local zoneIds = getSetZoneIds(setId)
+
+            -- Curse you Lua, and your lack of a continue statement
+            local skip = false
+            if LibSets.IsTrialSet(setId) or LibSets.IsDungeonSet(setId) or LibSets.IsArenaSet(setId) or LibSets.IsMonsterSet(setId) then
+                -- Ignore instance sets if we're not in an instance
+                if not inInstance then skip = true end
+            elseif LibSets.IsOverlandSet(setId) then
+                -- Ignore overland sets if we are in an instance
+                if inInstance then skip = true end
+            elseif LibSets.IsCraftedSet(setId) or LibSets.IsMythicSet(setId) then
+                -- Ignore crafted and mythic sets
+                skip = true
+            end
+
+            if not skip then
+                for _, zoneId in ipairs(zoneIds) do
+                    for _, currentZoneId in ipairs(currentZoneIds) do
+                        if zoneId == currentZoneId or zoneId == currentZoneId then
+                            if DSST.libSetsReady == true then
+                                setName = DSST.libSets_GetSetName(setId, DSST.lang)
+                            end
+                            localSets[setId] = setName
+                        end
+                    end
+                end
+            end
+        end
+
+        -- Compare set list with previous sets
+        -- If they are the same - do not show an announcement
+        -- Most likely, we technically changed zone but are still in the same area (like a door in a dungeon)
+        do
+            local sameSets = true
+            for setId, _ in pairs(localSets) do
+                if not previousSets[setId] then
+                    sameSets = false
+                    break
+                end
+            end
+
+            if sameSets then
+                for setId, _ in pairs(previousSets) do
+                    if not localSets[setId] then
+                        sameSets = false
+                        break
+                    end
+                end
+            end
+
+            if sameSets then return end
+        end
+
+        for _, setName in pairs(localSets) do
+            showAnnouncement("You can find " .. setName .. " here!")
+        end
+
+        previousSets = localSets
+    end
+end
+
 --------------------------------------------------------------------------------
 -- CREATE TOOLTIP FOR THE SET NAME WITH THE DROP LOCATION
 -- BY XANDAROS
@@ -274,26 +399,7 @@ function DSST.createNameTooltip(iSetID, iLabel)
             tooltipIcon = "|t32:32:esoui/art/icons/momento_antiquarianeye_01.dds|t"
         end
 
-        local zoneIds = LibSets.GetZoneIds(iSetID)
---------------------------------------------------------------------------------
-        -- REMOVE "AREA" FROM LIST OF ZONES
-        -- OTHERWISE, WE GET, FOR EXAMPLE:
-        -- SUNPIRE, NORTHERN ELSWEYR, NORTHERN ELSWEYR
-        if #zoneIds > 1 then
-            local newZoneIds = {}
-            local areaId = zoneIds[#zoneIds]
-            for _, id in ipairs(zoneIds) do
-                if id ~= areaId then
-                    newZoneIds[#newZoneIds+1] = id
-                end
-            end
-
-            if #newZoneIds == 0 then
-                -- We ended up deleting all of them - restore one
-                newZoneIds[1] = areaId
-            end
-            zoneIds = newZoneIds
-        end
+        local zoneIds = getSetZoneIds(iSetID)
 
         local tooltipText = {}
         for i=1, #zoneIds do
@@ -479,13 +585,21 @@ function DSST:Initialize()
 -- SAVE IF 2H WEAPONS SHOULD BE SHOWN
 	DSST.s2h = self.savedVariables.show2h or false
 	DSST.show2H(DSST.s2h)
-	
+
 --------------------------------------------------------------------------------
 -- SAVE IF THE INVENTORY INDICATOR SHOULD BE SHOWN
     if self.savedVariables.markItems == nil then
         self.markItems = false
     else
         self.markItems = self.savedVariables.markItems
+    end
+
+--------------------------------------------------------------------------------
+-- SAVE IF NOTIFICATIONS SHOULD BE SHOWN
+    if self.savedVariables.displayNotification == nil then
+        self.displayNotification = false
+    else
+        self.displayNotification = self.savedVariables.displayNotification
     end
 
 --------------------------------------------------------------------------------
@@ -531,6 +645,9 @@ function DSST:Initialize()
 --------------------------------------------------------------------------------
 -- SET HOOKS TO ADD INDICATORS TO ITEMS
     DSST.RegisterInventoryHooks()
+--------------------------------------------------------------------------------
+-- SET HOOK TO SHOW ANNOUNCEMENT FOR ZONES
+    EVENT_MANAGER:RegisterForEvent(DSST.name, EVENT_PLAYER_ACTIVATED, onZoneChanged)
 end
 
 function DSST.OnAddOnLoaded(event, addonName)
